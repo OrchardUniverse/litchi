@@ -1,4 +1,5 @@
 import os
+from typing import List
 import yaml
 
 def load_ignore_rules(yaml_file):
@@ -71,6 +72,16 @@ def list_files(directory, ignore_rules, gitignore_patterns):
                 result_files.append(relative_path)
     return result_files
 
+class FileUtil:
+    def __init__(self, directory) -> None:
+        self.directory = directory
+
+    def get_files(self) -> List[str]:
+        ignore_rules = load_ignore_rules('ignore_rules.yaml')
+        gitignore_patterns = load_gitignore_rules('.gitignore')
+        files = list_files(self.directory, ignore_rules, gitignore_patterns)
+        return files
+    
 def main():
     ignore_rules = load_ignore_rules('ignore_rules.yaml')
     gitignore_patterns = load_gitignore_rules('.gitignore')
@@ -79,10 +90,6 @@ def main():
     
     for file in files:
         print(file)
-
-
-
-
 
 if __name__ == "__main__":
     main()

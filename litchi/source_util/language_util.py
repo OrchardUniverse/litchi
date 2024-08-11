@@ -21,7 +21,8 @@ def classify_files_by_extension(files, language_extensions):
         if ext in extension_to_language:
             language = extension_to_language[ext]
         else:
-            language = ext  # Use the extension itself as the key
+            #language = ext  # Use the extension itself as the key
+            language = 'Unknown'  # Use 'unknown' for files with no known extension
 
         if language not in classified_files:
             classified_files[language] = []
@@ -30,9 +31,17 @@ def classify_files_by_extension(files, language_extensions):
 
     return classified_files
 
-def save_to_yaml(data, output_file):
-    with open(output_file, 'w') as file:
-        yaml.dump(data, file, default_flow_style=False)
+
+
+
+class LanguageUtil:
+    def __init__(self) -> None:
+        pass
+
+    @staticmethod
+    def generate_language_file_map(files):
+        language_extensions = load_language_extensions('language_extensions.yaml')
+        return classify_files_by_extension(files, language_extensions)
 
 def main():
     language_extensions = load_language_extensions('language_extensions.yaml')
@@ -51,9 +60,8 @@ def main():
     ]
     
     classified_files = classify_files_by_extension(files, language_extensions)
+    print(classified_files)
     
-    # Save the output to a YAML file
-    save_to_yaml(classified_files, 'current_source_files.yaml')
 
 if __name__ == "__main__":
     main()
