@@ -1,0 +1,64 @@
+
+directories:
+  - node_modules
+  - __pycache__
+  - dist
+  - build
+directory_prefix:
+  - test
+  - Test
+directory_posfix:
+  - Test
+  - test
+  - .egg-info
+files:
+  - README.md
+  - LICENSE
+  - __init__.py
+  - requirements.txt
+  - setup.py
+file_prefix:
+  - test
+  - Test
+file_posfix:
+  - Test
+  - test
+  - .pyc
+  - .pyo
+  - .swp
+  - .log
+  - .tmp
+  - .bak
+  - .tmp
+  - .log
+  - .cache
+  - .egg-info
+  - .egg
+  - .md
+  - .json
+  - .yaml
+  - .gz
+  - .zip
+  - .tar.gz
+  - .tar.bz2
+  - .tar.xz
+  - .rar
+  - .7z
+  - .iso
+  - .bin
+  - .exe
+  - .dll
+  - .so
+  - .dylib
+  - .lib
+  - .a
+  - .o
+  - .class
+  - .jar
+  - .war
+  - .ear
+  - .apk
+  - .ipa
+  - .aab
+  - .aab
+
