@@ -1,0 +1,107 @@
+Python:
+  - ".py"
+Java:
+  - ".java"
+JavaScript:
+  - ".js"
+  - ".jsx"
+C:
+  - ".c"
+  - ".h"
+C++:
+  - ".cpp"
+  - ".hpp"
+  - ".cc"
+  - ".cxx"
+  - ".hxx"
+C#:
+  - ".cs"
+Ruby:
+  - ".rb"
+  - ".rbw"
+Go:
+  - ".go"
+Swift:
+  - ".swift"
+Kotlin:
+  - ".kt"
+  - ".kts"
+Rust:
+  - ".rs"
+TypeScript:
+  - ".ts"
+  - ".tsx"
+HTML:
+  - ".html"
+  - ".htm"
+CSS:
+  - ".css"
+PHP:
+  - ".php"
+  - ".phtml"
+  - ".php4"
+  - ".php3"
+  - ".php5"
+  - ".php7"
+  - ".phps"
+  - ".php-s"
+Perl:
+  - ".pl"
+  - ".pm"
+  - ".t"
+  - ".pod"
+R:
+  - ".r"
+  - ".rdata"
+  - ".rds"
+  - ".rda"
+Scala:
+  - ".scala"
+  - ".sc"
+Shell:
+  - ".sh"
+  - ".bash"
+  - ".zsh"
+  - ".csh"
+  - ".tcsh"
+  - ".ksh"
+Lua:
+  - ".lua"
+MATLAB:
+  - ".m"
+  - ".mlx"
+Groovy:
+  - ".groovy"
+  - ".grt"
+  - ".gtpl"
+  - ".gsp"
+Objective-C:
+  - ".m"
+  - ".mm"
+  - ".M"
+  - ".h"
+Assembly:
+  - ".asm"
+  - ".s"
+Haskell:
+  - ".hs"
+  - ".lhs"
+Julia:
+  - ".jl"
+Fortran:
+  - ".f"
+  - ".for"
+  - ".f90"
+  - ".f95"
+  - ".f03"
+  - ".f08"
+  - ".f15"
+Pascal:
+  - ".pas"
+  - ".pp"
+  - ".p"
+  - ".inc"
+SQL:
+  - ".sql"
+XML:
+  - ".xml"
