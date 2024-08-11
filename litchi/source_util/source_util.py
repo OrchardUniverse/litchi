@@ -63,9 +63,12 @@ def list_files(directory, ignore_rules, gitignore_patterns):
         # Filter directories in-place
         dirs[:] = [d for d in dirs if not should_ignore(os.path.join(root, d), ignore_rules, gitignore_patterns)]
         for file in files:
+            # Absolute file path
             file_path = os.path.join(root, file)
             if not should_ignore(file_path, ignore_rules, gitignore_patterns):
-                result_files.append(file_path)
+                # Relative path to return
+                relative_path = os.path.relpath(file_path, directory)
+                result_files.append(relative_path)
     return result_files
 
 def main():
@@ -76,6 +79,10 @@ def main():
     
     for file in files:
         print(file)
+
+
+
+
 
 if __name__ == "__main__":
     main()
