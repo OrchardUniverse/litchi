@@ -9,6 +9,19 @@ def save_to_yaml(data, output_file):
     with open(output_file, 'w') as file:
         yaml.dump(data, file, default_flow_style=False)
 
+def read_from_yaml(yaml_file):
+    with open(yaml_file, 'r') as file:
+        classified_files = yaml.safe_load(file)
+        return classified_files
+    
+def print_language_and_file(yaml_file):
+    classified_files = read_from_yaml(yaml_file)
+
+    for language, files in classified_files.items():
+        print(f"Language: {language}")
+        for file_name in files:
+            print(f"  - {file_name}")
+
 def main():
     file_util = FileUtil("/Users/tobe/code/orchard_universe/basket/")
     file_list = file_util.get_files()
