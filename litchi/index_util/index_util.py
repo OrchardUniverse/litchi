@@ -4,45 +4,18 @@ from openai import OpenAI
 import os
 import json
 import sqlite3
-from jinja2 import Template
+
 import hashlib
 
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
+from .prompt_util import generate_prompt, generate_get_related_source_files_prompt, generate_chat_with_realted_source_files_prompt
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
     return code
 
-def generate_prompt(programming_language, code):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_file = os.path.join(script_dir, "analyse_source_file.prompt")
-
-    with open(prompt_file, 'r') as file:
-        template_content = file.read()
-
-    template = Template(template_content)
-    params = {
-        'programming_language': programming_language,
-        'code': code
-    }
-    return template.render(params)
-
-def generate_get_related_source_files_prompt(query, source_file_indexes, max_file_count):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_file = os.path.join(script_dir, "get_related_source_files.prompt")
-
-    with open(prompt_file, 'r') as file:
-        template_content = file.read()
-
-    template = Template(template_content)
-    params = {
-        'query': query,
-        'source_file_indexes': source_file_indexes,
-        'max_file_count': max_file_count
-    }
-    return template.render(params)
 
 def chat_with_llm(user_prompt):
 
@@ -53,13 +26,13 @@ def chat_with_llm(user_prompt):
     )
 
     completion = client.chat.completions.create(
-    #model="gpt-4-1106-preview",
-    model="gpt-3.5-turbo-1106",
-    messages=[
-        {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
-        {"role": "user", "content": user_prompt}
-    ],
-    response_format={"type": "json_object"}
+        #model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
+            {"role": "user", "content": user_prompt}
+        ],
+        response_format={"type": "json_object"}
     )
 
     json_string = completion.choices[0].message.content
@@ -70,6 +43,30 @@ def chat_with_llm(user_prompt):
 
     return json_string, tokens
 
+def adhoc_chat_with_llm(user_prompt):
+    client = OpenAI(
+        base_url="https://api.gptsapi.net/v1",
+        # TODO: change to read config file or use envrinment variable
+        api_key="sk-bMc085e38ed3500c7839ad50ae35ddf19a61c134df80KGqT"
+    )
+
+    completion = client.chat.completions.create(
+        #model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": "You are a helpful assitant can summarize the source code and give the user a reasonable and understandable response."},
+            #  Please always response in Chinese.
+            {"role": "user", "content": user_prompt}
+        ]
+    )
+
+    json_string = completion.choices[0].message.content
+    tokens = completion.usage.total_tokens
+
+    print(f"LLM request:\n {user_prompt}")
+    print(f"LLM response:\n {completion}")
+
+    return json_string, tokens
 
 def save_json_to_file(json_str, file_path):
     """
@@ -138,6 +135,24 @@ def dict_to_json_file(data, filename):
     with open(filename, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
+def read_file_content(file_path):
+    """
+    Reads the content of a file and returns it as a string.
+
+    Parameters:
+        file_path (str): The path to the file to be read.
+
+    Returns:
+        str: The content of the file as a string.
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return content
+    except FileNotFoundError:
+        return f"Error: The file at {file_path} was not found."
+    except IOError:
+        return f"Error: An I/O error occurred while reading the file at {file_path}."
     
 
     
@@ -186,11 +201,22 @@ class SourceFileIndexManager:
 
     def get_related_files(self, user_query, max_file_count=10):
         source_file_indexes = self.db_util.select_all_rows()
+        
         prompt = generate_get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
         
         llm_output_json, tokens = chat_with_llm(prompt)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
-        return json.loads(json_string), tokens
+        return json.loads(json_string)["files"]
+
+    def chat_with_related_files(self, user_query, max_file_count=10):
+        files = self.get_related_files(user_query, max_file_count)
+        file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
+        prompt = generate_chat_with_realted_source_files_prompt(user_query, file_content_list)
+
+        llm_output, tokens = adhoc_chat_with_llm(prompt)
+        return llm_output
+
+
 
