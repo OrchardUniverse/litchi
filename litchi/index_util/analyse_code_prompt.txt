@@ -1,4 +1,8 @@
-I have the following Python code:
+{% if programming_language == "Unknown" %}
+I have the following code in an unknown language:
+{% else %}
+I have the following code in {{ programming_language }}:
+{% endif %}
 
 ```
 {{ code }}
