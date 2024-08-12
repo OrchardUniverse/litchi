@@ -179,9 +179,20 @@ def generate_source_code_index(file, llm_output_json):
     
 
     
-class IndexUtil:
+class SourceCodeIndexManager:
     def __init__(self) -> None:
         pass
+
+    def is_index_existed(self, file_path) -> bool:
+        return os.path.exists(file_path)
+    
+    def create_index(self, file_path):
+        pass
+
+    def update_index(self, file_path):
+        pass
+
+
 
 
 def generate_source_code_index_json():
