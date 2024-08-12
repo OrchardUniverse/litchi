@@ -1,0 +1,29 @@
+Here is the user's query:
+
+```
+{{ query }}
+```
+
+Here are the source code files and their names and purposes:
+
+[
+{% for item in source_file_indexes %}
+  {
+    "file": {{ item.file }},
+    "name": {{ item.name }},
+    "purpose": {{ item.purpose }}
+  },
+{% endfor %}
+]
+
+Return at most {{ max_file_count }} file names from the list that are most relevant to the user's query.
+
+Make sure the JSON output is structured as follows:
+
+```
+{
+  "files": [
+    "string"
+  ]
+}
+```

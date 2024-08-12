@@ -1,0 +1,28 @@
+{% if programming_language == "Unknown" %}
+I have the following code in an unknown language:
+{% else %}
+I have the following code in {{ programming_language }}:
+{% endif %}
+
+```
+{{ code }}
+```
+
+Could you please explain what this code does, including the purpose of class and key part of the code?
+
+Make sure the JSON output is structured as follows:
+
+```
+{
+  "name": "string",
+  "purpose": "string",
+  "classes": [
+    {
+      "name": "string",
+      "purpose": "string"
+    }
+  ]
+}
+```
+
+This JSON output will help us understand the structure and functionality of the source code file in a clear and concise manner.

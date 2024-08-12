@@ -5,76 +5,66 @@ import os
 import json
 import sqlite3
 
-def read_python_file(file_path):
+import hashlib
+
+from .sqlite_util import SqliteUtil
+from .sqlite_util import SourceCodeIndex
+from .prompt_util import generate_prompt, generate_get_related_source_files_prompt, generate_chat_with_realted_source_files_prompt
+
+def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
     return code
 
 
-
-def generate_prompt2(code):
-    prompt = f"""
-    I have the following Python code:
-    
-    {code}
-    
-    Could you please explain what this code does, including the purpose of each function, class, and key part of the code?
-    """
-    return prompt
-
-def generate_prompt(code):
-    prompt = f"""
-    I have the following Python code:
-    
-    {code}
-    
-    Could you please explain what this code does, including the purpose of each function, class, and key part of the code?
-    
-    Make sure the JSON output is structured as follows:
-
-    ```
-    {{
-    "name": "string",
-    "purpose": "string",
-    "classes": [
-        {{
-        "name": "string",
-        "purpose": "string"
-        }}
-    ],
-    "functions": [
-        {{
-        "name": "string",
-        "purpose": "string"
-        }}
-    ]
-    }}
-    ```
-
-    This JSON output will help us understand the structure and functionality of the source code file in a clear and concise manner.
-    """
-    return prompt
-
-
 def chat_with_llm(user_prompt):
+
     client = OpenAI(
-        base_url="https://api.gptsapi.net/v1",
-        api_key="sk-bMc085e38ed3500c7839ad50ae35ddf19a61c134df80KGqT"
+        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY")
     )
 
     completion = client.chat.completions.create(
-    #model="gpt-4-1106-preview",
-    model="gpt-3.5-turbo-1106",
-    messages=[
-        {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
-        {"role": "user", "content": user_prompt}
-    ],
-    response_format={"type": "json_object"}
+        #model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
+            {"role": "user", "content": user_prompt}
+        ],
+        response_format={"type": "json_object"}
     )
 
-    #print(completion.choices[0].message.content)
-    return completion.choices[0].message.content
+    json_string = completion.choices[0].message.content
+    tokens = completion.usage.total_tokens
 
+    print(f"LLM request:\n {user_prompt}")
+    print(f"LLM response:\n {completion}")
+
+    return json_string, tokens
+
+def adhoc_chat_with_llm(user_prompt):
+    client = OpenAI(
+        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY")
+    )
+
+    completion = client.chat.completions.create(
+        #model="gpt-4-1106-preview",
+        model="gpt-3.5-turbo-1106",
+        messages=[
+            {"role": "system", "content": "You are a helpful assitant can summarize the source code and give the user a reasonable and understandable response."},
+            #  Please always response in Chinese.
+            {"role": "user", "content": user_prompt}
+        ]
+    )
+
+    json_string = completion.choices[0].message.content
+    tokens = completion.usage.total_tokens
+
+    print(f"LLM request:\n {user_prompt}")
+    print(f"LLM response:\n {completion}")
+
+    return json_string, tokens
 
 def save_json_to_file(json_str, file_path):
     """
@@ -102,100 +92,129 @@ def save_json_to_file(json_str, file_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def remove_first_last_lines_if_quoted(text):
+    lines = text.splitlines()
+    if len(lines) >= 2 and lines[0].strip().startswith("```") and lines[-1].strip().startswith("```"):
+        return '\n'.join(lines[1:-1])
+    return text
 
-def remove_first_and_last_line(input_string):
-    """
-    Removes the first and last lines from a given string.
-
-    Args:
-        input_string (str): The input string with multiple lines.
-
-    Returns:
-        str: The string with the first and last lines removed.
-    """
-    # Split the string into a list of lines
-    lines = input_string.splitlines()
-
-    # Check if the string has more than one line
-    if len(lines) > 2:
-        # Remove the first and last lines
-        trimmed_lines = lines[1:-1]
-        # Join the remaining lines back into a single string
-        return '\n'.join(trimmed_lines)
-    else:
-        # Return an empty string if there are less than 3 lines
-        return ''
-
-def explain_code(file_path):
-
-    code = read_python_file(file_path)
-    prompt = generate_prompt(code)
+def llm_explain_code(programming_language, file_path):
+    code = read_file(file_path)
+    prompt = generate_prompt(programming_language, code)
     
-    llm_output_json = chat_with_llm(prompt)
+    llm_output_json, tokens = chat_with_llm(prompt)
 
-    json = remove_first_and_last_line(llm_output_json)
+    json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
-    output_json_file = "llm_analyse_code_output.json"
-    save_json_to_file(json, output_json_file)
+    #output_json_file = "llm_analyse_code_output.json"
+    #save_json_to_file(json, output_json_file)
+    
+    return json.loads(json_string), tokens
 
-    print(json)
-    return
-
-
-def insert_json_to_db(json_file, db_file):
+def read_json(json_file):
     # Read JSON data from file
     with open(json_file, 'r') as file:
         data = json.load(file)
-    
-    # Connect to SQLite3 database
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-    
-    # Create table if it does not exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS maas_tools (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            purpose TEXT,
-            classes TEXT,
-            functions TEXT
-        )
-    ''')
-    
-    # Prepare data for insertion
-    name = data['name']
-    purpose = data['purpose']
-    
-    # Convert lists of classes and functions to JSON strings for storage
-    classes = json.dumps(data['classes'])
-    functions = json.dumps(data['functions'])
-    
-    # Insert data into the database
-    cursor.execute('''
-        INSERT INTO maas_tools (name, purpose, classes, functions)
-        VALUES (?, ?, ?, ?)
-    ''', (name, purpose, classes, functions))
-    
-    # Commit the transaction and close the connection
-    conn.commit()
-    conn.close()
+    return data
 
-def insert_explain_to_database():
-    output_json_file = "llm_analyse_code_output.json"
-    #save_json_to_file(json, output_json_file)
-    insert_json_to_db(output_json_file, 'code_index.db')
+def compute_md5_and_count_lines(filename):
+    hash_md5 = hashlib.md5()
+    line_count = 0
+
+    with open(filename, 'rb') as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            hash_md5.update(chunk)
+            line_count += chunk.count(b'\n')
+
+    return hash_md5.hexdigest(), line_count
 
 
+def dict_to_json_file(data, filename):
+    with open(filename, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
+
+def read_file_content(file_path):
+    """
+    Reads the content of a file and returns it as a string.
+
+    Parameters:
+        file_path (str): The path to the file to be read.
+
+    Returns:
+        str: The content of the file as a string.
+    """
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+        return content
+    except FileNotFoundError:
+        return f"Error: The file at {file_path} was not found."
+    except IOError:
+        return f"Error: An I/O error occurred while reading the file at {file_path}."
     
 
-class IndexUtil:
-    def __init__(self) -> None:
+    
+class SourceFileIndexManager:
+    def __init__(self, project_dir) -> None:
+        self.project_dir = project_dir
+
+        litchi_path = os.path.join(project_dir, ".litchi")
+        if not os.path.exists(litchi_path):
+            os.makedirs(litchi_path)
+
+        db_name = os.path.join(litchi_path, "source_file_index.db")
+        self.db_util = SqliteUtil(db_name)
+
+    def generate_source_file_index(self, file, llm_output_json, tokens) -> SourceCodeIndex:
+        absolute_file_path = os.path.join(self.project_dir, file)
+        md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
+
+        classes = json.dumps(llm_output_json['classes'])
+
+        # TODO: Make sure to get attributes from llm output json
+        return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
+                                name=llm_output_json['name'], purpose=llm_output_json['purpose'], 
+                                classes=classes, tokens = tokens)
+
+    def is_index_existed(self, file_path) -> bool:
+        return self.db_util.row_exists(file_path)
+    
+    def create_index(self, file_path, programming_language="Unknown"):
+        
+        if self.is_index_existed(file_path):
+            print("The index exists, skip creating.")
+            return
+        else:
+            print(f"Try to create the index for {file_path}")
+            absolute_file_path = os.path.join(self.project_dir, file_path)
+            llm_output_json, tokens = llm_explain_code(programming_language, absolute_file_path)
+            source_file_index = self.generate_source_file_index(file_path, llm_output_json, tokens)
+            self.db_util.insert_index(source_file_index)
+
+    def update_index(self, file_path):
         pass
 
+    def delete_index(self, file_path):
+        pass
+
+    def get_related_files(self, user_query, max_file_count=10):
+        source_file_indexes = self.db_util.select_all_rows()
+        
+        prompt = generate_get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
+        
+        llm_output_json, tokens = chat_with_llm(prompt)
+
+        json_string = remove_first_last_lines_if_quoted(llm_output_json)
+
+        return json.loads(json_string)["files"]
+
+    def chat_with_related_files(self, user_query, max_file_count=10):
+        files = self.get_related_files(user_query, max_file_count)
+        file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
+        prompt = generate_chat_with_realted_source_files_prompt(user_query, file_content_list)
+
+        llm_output, tokens = adhoc_chat_with_llm(prompt)
+        return llm_output
 
 
-# Example usage
-if __name__ == "__main__":
-    #file_path = "/Users/tobe/code/orchard_universe/basket/basket/cli.py"
-    #explain_code(file_path)
-    insert_explain_to_database()
+

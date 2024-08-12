@@ -1,6 +1,7 @@
 import os
 from typing import List
 import yaml
+import shutil
 
 def load_ignore_rules(yaml_file):
     with open(yaml_file, 'r') as file:
@@ -73,13 +74,30 @@ def list_files(directory, ignore_rules, gitignore_patterns):
     return result_files
 
 class FileUtil:
-    def __init__(self, directory) -> None:
-        self.directory = directory
+    def __init__(self, project_path) -> None:
+        self.project_path = project_path
+        self.litchi_path = os.path.join(project_path, ".litchi")
 
     def get_files(self) -> List[str]:
-        ignore_rules = load_ignore_rules('ignore_rules.yaml')
-        gitignore_patterns = load_gitignore_rules('.gitignore')
-        files = list_files(self.directory, ignore_rules, gitignore_patterns)
+        if os.path.exists(os.path.join(self.project_path, '.gitignore')):
+            yaml_file_path = os.path.join(self.litchi_path, 'ignore_rules.yaml')
+            ignore_rules = load_ignore_rules(yaml_file_path)
+        else:
+            ignore_rules = {
+                'directories': [],
+                'directory_prefix': [],
+                'directory_posfix': [],
+                'files': [],
+                'file_prefix': [],
+                'file_posfix': []
+            }
+
+        if os.path.exists(os.path.join(self.project_path, '.gitignore')):
+            gitignore_patterns = load_gitignore_rules('.gitignore')
+        else:
+            gitignore_patterns = []
+        
+        files = list_files(self.project_path, ignore_rules, gitignore_patterns)
         return files
     
 def main():
