@@ -7,6 +7,8 @@ import sqlite3
 from jinja2 import Template
 import hashlib
 
+from sqlite_util import SqliteUtil
+from sqlite_util import SourceCodeIndex
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -36,8 +38,10 @@ def generate_prompt(code):
 
 
 def chat_with_llm(user_prompt):
+
     client = OpenAI(
         base_url="https://api.gptsapi.net/v1",
+        # TODO: change to read config file or use envrinment variable
         api_key="sk-bMc085e38ed3500c7839ad50ae35ddf19a61c134df80KGqT"
     )
 
@@ -51,7 +55,9 @@ def chat_with_llm(user_prompt):
     response_format={"type": "json_object"}
     )
 
-    return completion.choices[0].message.content
+    json_string = completion.choices[0].message.content
+    tokens = completion.usage.total_tokens
+    return json_string, tokens
 
 
 def save_json_to_file(json_str, file_path):
@@ -91,7 +97,7 @@ def llm_explain_code(file_path):
     code = read_file(file_path)
     prompt = generate_prompt(code)
     
-    llm_output_json = chat_with_llm(prompt)
+    llm_output_json, tokens = chat_with_llm(prompt)
 
     json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
@@ -101,7 +107,7 @@ def llm_explain_code(file_path):
     #import ipdb;ipdb.set_trace()
     print(json_string)
 
-    return json.loads(json_string)
+    return json.loads(json_string), tokens
 
 def read_json(json_file):
     # Read JSON data from file
@@ -110,23 +116,7 @@ def read_json(json_file):
     return data
 
 def insert_source_code_index_to_db(data, db_file):
-    
-    # Connect to SQLite3 database
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-    
-    # Create table if it does not exist
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS indexes (
-            file TEXT PRIMARY KEY,
-            lines INTEGER,
-            md5 TEXT,
-            name TEXT,
-            purpose TEXT,
-            classes TEXT
-        )
-    ''')
-    
+        
     # Prepare data for insertion
     file = data['file']
     lines = data['lines']
@@ -136,16 +126,8 @@ def insert_source_code_index_to_db(data, db_file):
     # Convert lists of classes and functions to JSON strings for storage
     classes = json.dumps(data['classes'])
 
-    
-    # Insert data into the database
-    cursor.execute('''
-        INSERT INTO indexes (file, lines, md5, name, purpose, classes)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (file, lines, md5, name, purpose, classes))
-    
-    # Commit the transaction and close the connection
-    conn.commit()
-    conn.close()
+    db_util = SqliteUtil(db_file)
+    db_util.insert_row(file, lines, md5, name, purpose, classes)
 
 def compute_md5_and_count_lines(filename):
     hash_md5 = hashlib.md5()
@@ -163,51 +145,51 @@ def dict_to_json_file(data, filename):
     with open(filename, 'w') as json_file:
         json.dump(data, json_file, indent=4)
 
-def generate_source_code_index(file, llm_output_json):
+def generate_source_code_index(file, llm_output_json, tokens) -> SourceCodeIndex:
     md5_hash, line_count = compute_md5_and_count_lines(file)
 
-    data = {
-        "file": file,
-        "lines": line_count,
-        "md5": md5_hash,
-        "name": llm_output_json['name'],
-        "purpose": llm_output_json['purpose'],
-        "classes": llm_output_json['classes']
-    }
+    classes = json.dumps(llm_output_json['classes'])
 
-    return data
+    # TODO: Make sure to get attributes from llm output json
+    return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
+                            name=llm_output_json['name'], purpose=llm_output_json['purpose'], 
+                            classes=classes, tokens = tokens)
+
+
     
 
     
 class SourceCodeIndexManager:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, db_name) -> None:
+        self.db_util = SqliteUtil(db_name)
 
     def is_index_existed(self, file_path) -> bool:
-        return os.path.exists(file_path)
+        return self.db_util.row_exists(file_path)
     
     def create_index(self, file_path):
-        pass
+        if self.is_index_existed(file_path):
+            print("The index exists, skip creating")
+            return
+        else:
+            print(f"Try to create the index for {file_path}")
+            llm_output_json, tokens = llm_explain_code(file_path)
+            source_code_index = generate_source_code_index(file_path, llm_output_json, tokens)
+            self.db_util.insert_index(source_code_index)
 
     def update_index(self, file_path):
         pass
 
+    def delete_index(self, file_path):
+        pass
 
 
 
-def generate_source_code_index_json():
-    source_file = "/Users/tobe/code/orchard_universe/basket/basket/cli.py"
-
-    llm_output_json = llm_explain_code(source_file)
-    
-    source_code_index = generate_source_code_index(source_file, llm_output_json)
-
-    dict_to_json_file(source_code_index, "source_code_index.json")
-
-# Example usage
 if __name__ == "__main__":
+    db_name = "source_code_index.db"
+    index_manager = SourceCodeIndexManager(db_name)
 
-    source_code_index = read_json("source_code_index.json")
-    sqlite_db = "source_code_index.db"
-    insert_source_code_index_to_db(source_code_index, sqlite_db)
+    source_file = "/Users/tobe/code/orchard_universe/basket/basket/cli.py"
+    print(index_manager.is_index_existed(source_file))
 
+    source_file = "/Users/tobe/code/orchard_universe/basket/basket/basket_config/auths_config.py"
+    index_manager.create_index(source_file)

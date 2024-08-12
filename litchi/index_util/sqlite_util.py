@@ -10,6 +10,7 @@ class SourceCodeIndex(BaseModel):
     name: str
     purpose: str
     classes: str
+    tokens: int
 
 # Define the SqliteUtil class
 class SqliteUtil:
@@ -26,22 +27,26 @@ class SqliteUtil:
                 md5 TEXT,
                 name TEXT,
                 purpose TEXT,
-                classes TEXT
+                classes TEXT,
+                tokens INTEGER
             )
         ''')
         self.connection.commit()
 
-    def insert_row(self, file, lines, md5, name, purpose, classes):
+    def insert_row(self, file, lines, md5, name, purpose, classes, tokens):
         try:
             self.cursor.execute('''
-                INSERT INTO indexes (file, lines, md5, name, purpose, classes)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (file, lines, md5, name, purpose, classes))
+                INSERT INTO indexes (file, lines, md5, name, purpose, classes, tokens)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (file, lines, md5, name, purpose, classes, tokens))
             self.connection.commit()
         except sqlite3.IntegrityError as e:
             print(f"Error inserting row: {e}")
 
-    def update_row(self, file, lines=None, md5=None, name=None, purpose=None, classes=None):
+    def insert_index(self, index: SourceCodeIndex):
+        self.insert_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.tokens)
+
+    def update_row(self, file, lines=None, md5=None, name=None, purpose=None, classes=None, tokens=None):
         query = "UPDATE indexes SET "
         params = []
         if lines is not None:
@@ -59,7 +64,10 @@ class SqliteUtil:
         if classes is not None:
             query += "classes = ?, "
             params.append(classes)
-        
+        if tokens is not None:
+            query += "tokens = ?, "
+            params.append(tokens)
+
         query = query.rstrip(', ')
         query += " WHERE file = ?"
         params.append(file)
@@ -81,7 +89,8 @@ class SqliteUtil:
                 "md5": row[2],
                 "name": row[3],
                 "purpose": row[4],
-                "classes": row[5]
+                "classes": row[5],
+                "tokens": row[6]
             })
         return None
 
@@ -94,7 +103,8 @@ class SqliteUtil:
             "md5": row[2],
             "name": row[3],
             "purpose": row[4],
-            "classes": row[5]
+            "classes": row[5],
+            "tokens": row[6]
         }) for row in rows]
 
     def close(self):
