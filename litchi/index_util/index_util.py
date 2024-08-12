@@ -20,9 +20,8 @@ def read_file(file_path):
 def chat_with_llm(user_prompt):
 
     client = OpenAI(
-        base_url="https://api.gptsapi.net/v1",
-        # TODO: change to read config file or use envrinment variable
-        api_key="sk-bMc085e38ed3500c7839ad50ae35ddf19a61c134df80KGqT"
+        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY")
     )
 
     completion = client.chat.completions.create(
@@ -45,9 +44,8 @@ def chat_with_llm(user_prompt):
 
 def adhoc_chat_with_llm(user_prompt):
     client = OpenAI(
-        base_url="https://api.gptsapi.net/v1",
-        # TODO: change to read config file or use envrinment variable
-        api_key="sk-bMc085e38ed3500c7839ad50ae35ddf19a61c134df80KGqT"
+        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+        api_key=os.environ.get("OPENAI_API_KEY")
     )
 
     completion = client.chat.completions.create(
