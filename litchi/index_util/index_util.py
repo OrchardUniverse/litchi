@@ -16,9 +16,8 @@ def read_file(file_path):
     return code
 
 def generate_prompt(programming_language, code):
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_file = os.path.join(script_dir, "analyse_code_prompt.txt")
+    prompt_file = os.path.join(script_dir, "analyse_source_file.prompt")
 
     with open(prompt_file, 'r') as file:
         template_content = file.read()
@@ -30,6 +29,20 @@ def generate_prompt(programming_language, code):
     }
     return template.render(params)
 
+def generate_get_related_source_files_prompt(query, source_file_indexes, max_file_count):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    prompt_file = os.path.join(script_dir, "get_related_source_files.prompt")
+
+    with open(prompt_file, 'r') as file:
+        template_content = file.read()
+
+    template = Template(template_content)
+    params = {
+        'query': query,
+        'source_file_indexes': source_file_indexes,
+        'max_file_count': max_file_count
+    }
+    return template.render(params)
 
 def chat_with_llm(user_prompt):
 
@@ -91,7 +104,6 @@ def remove_first_last_lines_if_quoted(text):
     return text
 
 def llm_explain_code(programming_language, file_path):
-
     code = read_file(file_path)
     prompt = generate_prompt(programming_language, code)
     
@@ -171,4 +183,14 @@ class SourceFileIndexManager:
 
     def delete_index(self, file_path):
         pass
+
+    def get_related_files(self, user_query, max_file_count=10):
+        source_file_indexes = self.db_util.select_all_rows()
+        prompt = generate_get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
+        
+        llm_output_json, tokens = chat_with_llm(prompt)
+
+        json_string = remove_first_last_lines_if_quoted(llm_output_json)
+
+        return json.loads(json_string), tokens
 
