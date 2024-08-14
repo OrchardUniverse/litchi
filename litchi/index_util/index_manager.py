@@ -292,5 +292,32 @@ class SourceFileIndexManager:
         llm_output, tokens = adhoc_chat_with_llm(prompt)
         return llm_output
 
+    def generate_source_file_index_name(self, source_file_path: str) -> str:
+    
+        dir_path = os.path.dirname(source_file_path)
+        base_name = os.path.splitext(os.path.basename(source_file_path))[0]
+        new_file_name = base_name + "_index.json"
+        new_index_file_path = os.path.join(self.project_dir, dir_path, new_file_name)
 
+        return new_index_file_path
 
+    def copy_index_to_source_code(self, index: SourceCodeIndex):
+        index_file_path = self.generate_source_file_index_name(index.file)
+        try:        
+            with open(index_file_path, 'w') as file:
+                file.write(index.json(indent=4))
+                print(f"Content successfully written to {index_file_path}")
+        except IOError as e:
+            print(f"An error occurred while writing to the file: {e}")
+
+    def delete_index_from_source_code(self, index: SourceCodeIndex) -> None:
+        index_file_path = self.generate_source_file_index_name(index.file)
+
+        try:
+            if os.path.isfile(index_file_path):
+                os.remove(index_file_path)
+                print(f"Index file '{index_file_path}' has been deleted successfully.")
+            else:
+                print(f"No index file found at '{index_file_path}'.")
+        except Exception as e:
+            print(f"An error occurred while trying to delete the file: {e}")

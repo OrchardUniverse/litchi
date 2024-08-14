@@ -100,15 +100,15 @@ def index_query(query):
     index_command.query_indexes(query)
 
 
-@index.command("copytosource")
+@index.command("copy-to-source")
 def index_copytosource():
-    """Copy the index content to source file's directory."""
-    search_index("")
+    """Copy the index json file to source file's directory."""
+    index_command.copy_indexes_to_source_code()
 
-@index.command("deletefromsource")
+@index.command("delete-from-source")
 def index_deletefromsource():
     """Delete the index content from source file's directory."""
-    search_index("")
+    index_command.delete_indexes_from_source_code()
 
 @click.command("gen")
 @click.argument("query")

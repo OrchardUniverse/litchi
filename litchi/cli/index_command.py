@@ -109,6 +109,24 @@ def query_indexes(user_query):
     index_manager = SourceFileIndexManager()
 
     file_reason_list = index_manager.get_related_file_reason_list(user_query, max_retrival_size)
-    import ipdb;ipdb.set_trace()
+
     for file_reason_map in file_reason_list:
         print(f"File: {file_reason_map['file']}\nReason: {file_reason_map['reason']}")
+
+
+def copy_indexes_to_source_code():
+    LitchiConfigManager.make_sure_in_project_path()
+
+    index_manager = SourceFileIndexManager()
+    indexes = index_manager.get_all_indexes()
+    for index in indexes:
+        index_manager.copy_index_to_source_code(index)
+
+
+def delete_indexes_from_source_code():
+    LitchiConfigManager.make_sure_in_project_path()
+
+    index_manager = SourceFileIndexManager()
+    indexes = index_manager.get_all_indexes()
+    for index in indexes:
+        index_manager.delete_index_from_source_code(index)
