@@ -4,16 +4,6 @@ from . import init_command
 from . import source_command
 from . import index_command
 
-from .utils import (
-    initialize_project,
-    update_source_files,
-    create_index,
-    show_index,
-    update_index,
-    search_index,
-    generate_code,
-)
-
 
 @click.group()
 def cli():
@@ -116,7 +106,7 @@ def index_deletefromsource():
 @click.option("--without-index", is_flag=True, help="Generate code without updating index")
 def gen(query, diff, without_index):
     """Generate the source code based on user's query and indexes."""
-    generate_code(query, diff, without_index)
+    pass
 
 
 @click.command("chat")

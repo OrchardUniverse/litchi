@@ -40,15 +40,11 @@ def show_index(file_path, is_all):
     index_manager = SourceFileIndexManager()
 
     if file_path != None:
-        index = index_manager.get_index(file_path)
-        if index == None:
-            print(f"Index for {file_path} does not exist.")
-        else:
-            print(index)
+        index_manager.print_index(file_path)
     else:
         indexes = index_manager.get_all_indexes()
         for index in indexes:
-            print(index)
+            index_manager.print_index(index.file)
 
 def show_index_diff(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()

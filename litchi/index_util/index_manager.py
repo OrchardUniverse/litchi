@@ -9,9 +9,17 @@ import hashlib
 
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
-from .prompt_util import generate_prompt, generate_get_related_source_files_prompt, generate_chat_with_realted_source_files_prompt
+from .prompt_util import PromptUtil
 
 from ..source_util.source_file_manager import SourceFileManager
+
+def print_json(input_json: str) -> None:
+    try:
+        parsed_json = json.loads(input_json)
+        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=4)
+        print(pretty_json)
+    except json.JSONDecodeError as e:
+        print(f"Invalid json and get exception: {e}")
 
 def read_file(file_path):
     with open(file_path, 'r') as file:
@@ -100,18 +108,7 @@ def remove_first_last_lines_if_quoted(text):
         return '\n'.join(lines[1:-1])
     return text
 
-def llm_explain_code(programming_language, file_path):
-    code = read_file(file_path)
-    prompt = generate_prompt(programming_language, code)
-    
-    llm_output_json, tokens = chat_with_llm(prompt)
 
-    json_string = remove_first_last_lines_if_quoted(llm_output_json)
-
-    #output_json_file = "llm_analyse_code_output.json"
-    #save_json_to_file(json, output_json_file)
-    
-    return json.loads(json_string), tokens
 
 def read_json(json_file):
     # Read JSON data from file
@@ -159,6 +156,7 @@ def read_file_content(file_path):
 class SourceFileIndexManager:
     def __init__(self, project_dir: str = "./") -> None:
         self.project_dir = project_dir
+        self.prompt_util = PromptUtil(project_dir)
 
         litchi_path = os.path.join(project_dir, ".litchi")
         if not os.path.exists(litchi_path):
@@ -166,6 +164,19 @@ class SourceFileIndexManager:
 
         db_name = os.path.join(litchi_path, "source_file_index.db")
         self.db_util = SqliteUtil(db_name)
+
+    def llm_explain_code(self, programming_language, file_path):
+        code = read_file(file_path)
+        prompt = self.prompt_util.analyse_source_file_prompt(programming_language, code)
+        
+        llm_output_json, tokens = chat_with_llm(prompt)
+
+        json_string = remove_first_last_lines_if_quoted(llm_output_json)
+
+        #output_json_file = "llm_analyse_code_output.json"
+        #save_json_to_file(json, output_json_file)
+        
+        return json.loads(json_string), tokens
 
     def generate_source_file_index(self, file, llm_output_json, tokens) -> SourceCodeIndex:
         absolute_file_path = os.path.join(self.project_dir, file)
@@ -191,7 +202,7 @@ class SourceFileIndexManager:
     def create_new_index(self, file_path, programming_language="Unknown"):
         print(f"Try to create the index for {file_path}")
         absolute_file_path = os.path.join(self.project_dir, file_path)
-        llm_output_json, tokens = llm_explain_code(programming_language, absolute_file_path)
+        llm_output_json, tokens = self.llm_explain_code(programming_language, absolute_file_path)
         return self.generate_source_file_index(file_path, llm_output_json, tokens)
 
 
@@ -203,6 +214,13 @@ class SourceFileIndexManager:
     def get_index(self, file_path):
         return self.db_util.select_row(file_path)
 
+    def print_index(self, file_path):
+        index = self.get_index(file_path)
+
+        if index is None:
+            print("Index does not exist.")
+        else:
+            print_json(index.json())
     
     def get_all_indexes(self):
         return self.db_util.select_all_rows()
@@ -274,7 +292,7 @@ class SourceFileIndexManager:
     def get_related_file_reason_list(self, user_query, max_file_count=10):
         source_file_indexes = self.db_util.select_all_rows()
         
-        prompt = generate_get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
+        prompt = prompt_util.get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
         
         llm_output_json, tokens = chat_with_llm(prompt)
 
@@ -287,7 +305,7 @@ class SourceFileIndexManager:
     def chat_with_related_files(self, user_query, max_file_count=10):
         files = self.get_related_files(user_query, max_file_count)
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
-        prompt = generate_chat_with_realted_source_files_prompt(user_query, file_content_list)
+        prompt = prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
         llm_output, tokens = adhoc_chat_with_llm(prompt)
         return llm_output
