@@ -2,9 +2,17 @@
 
 The AI coding assistant powered by LLM.
 
+* Gernerate index and synmatic explaination for source code.
+* 
+
 ## Install
 
+```
+pip install .
+```
+
 ## Usage
+
 
 
 ## Tokens

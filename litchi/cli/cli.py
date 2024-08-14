@@ -86,14 +86,34 @@ def index_update(file_path, all):
     """Update index for a specified file or all files."""
     update_index(file_path, all)
 
-
 @index.command("search")
 @click.argument("query")
 def index_search(query):
     """Search the index with a query."""
     search_index(query)
 
+@index.command("delete")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Update index for all files")
+def index_delete(file_path, all):
+    """Delete the index for a specified file or all files."""
+    update_index(file_path, all)
 
+@index.command("search")
+@click.argument("query")
+def copy(query):
+    """Search the index with a query."""
+    search_index(query)
+
+@index.command("copytosource")
+def index_copytosource():
+    """Copy the index content to source file's directory."""
+    search_index("")
+
+@index.command("deletefromsource")
+def index_deletefromsource():
+    """Delete the index content from source file's directory."""
+    search_index("")
 
 @click.command("gen")
 @click.argument("query")
@@ -149,7 +169,9 @@ index.add_command(index_show)
 index.add_command(index_update)
 index.add_command(index_diff)
 index.add_command(index_search)
-
+index.add_command(index_delete)
+index.add_command(index_copytosource)
+index.add_command(index_deletefromsource)
 
 
 if __name__ == "__main__":

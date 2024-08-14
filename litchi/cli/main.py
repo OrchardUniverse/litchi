@@ -1,7 +1,7 @@
 import os
 
-from index_util.index_util import SourceFileIndexManager
-from source_util.source_file_util import SourceFileManager
+from index_util.index_manager import SourceFileIndexManager
+from source_util.source_file_manager import SourceFileManager
 
 def main():
     project_path = "/Users/tobe/code/orchard_universe/basket"
@@ -30,7 +30,7 @@ def main():
     """
 
     # Step4: Chat with related files
-    user_query = "How to get list of maas?"
+    user_query = "这个项目是用什么编程语言实现的？"
     print(index_manager.chat_with_related_files(user_query, 1))
 
     
