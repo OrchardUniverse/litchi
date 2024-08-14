@@ -2,6 +2,7 @@ import click
 import os
 from . import init_command
 from . import source_command
+from . import index_command
 
 from .utils import (
     initialize_project,
@@ -56,13 +57,12 @@ def index():
     """Manager the indexes of source files."""
     pass
 
-
 @index.command("create")
 @click.argument("file_path", required=False)
 @click.option("--all", is_flag=True, help="Create index for all files")
 def index_create(file_path, all):
     """Create index for a specified file or all files."""
-    create_index(file_path, all)
+    index_command.create_index(file_path, all)
 
 
 @index.command("show")

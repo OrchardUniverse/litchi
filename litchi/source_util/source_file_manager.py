@@ -125,7 +125,24 @@ class SourceFileManager:
             for file_name in files:
                 print(f"  - {file_name}")
     
+    def get_language(self, file_name):
+        language_file_map = read_from_yaml(self.source_file_path)
+        for language, files in language_file_map.items():
+            if file_name in files:
+                return language
+    
     def get_language_files_map(self):
+        return read_from_yaml(self.source_file_path)
+
+    def get_source_file_count(self):
+        count = 0
+        language_files_map = self.get_language_files_map()
+        for language, files in language_files_map.items():
+            count += len(files)
+        return count
+
+
+    def get_latest_language_files_map(self):
         file_util = FileUtil(self.project_path)
         file_list = file_util.get_files()
         language_file_map = self.generate_language_file_map(file_list)
@@ -133,7 +150,7 @@ class SourceFileManager:
     
     def print_source_file_diff(self):
         yaml1 = make_hashable(read_from_yaml(self.source_file_path))
-        yaml2 = make_hashable(self.get_language_files_map())
+        yaml2 = make_hashable(self.get_latest_language_files_map())
 
         diff_output = []
 

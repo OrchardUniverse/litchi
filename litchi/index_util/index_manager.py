@@ -155,7 +155,7 @@ def read_file_content(file_path):
 
     
 class SourceFileIndexManager:
-    def __init__(self, project_dir) -> None:
+    def __init__(self, project_dir: str = "./") -> None:
         self.project_dir = project_dir
 
         litchi_path = os.path.join(project_dir, ".litchi")
