@@ -52,7 +52,7 @@ def get_os_info() -> dict:
 
     return os_info
 
-def create_default_litchi_config() -> LitchiConfig:
+def create_default_litchi_config(language: str = "English") -> LitchiConfig:
     os_data = get_os_info()
 
     llm_data = {
@@ -60,13 +60,13 @@ def create_default_litchi_config() -> LitchiConfig:
         "ApiKey": "your-api-key"
     }
     index_data = {
-        "Lanauage": "Chinese",
+        "Lanauage": language,
         "Model": "gpt-3.5-turbo-1106",
         "MaxRetrivalSize": 3,
         "RetrivalMethod": "LLM"
     }
     query_data = {
-        "Lanauage": "Chinese",
+        "Lanauage": language,
         "Model": "gpt-3.5-turbo-1106"
     }
     return create_litchi_config(os_data, llm_data, index_data, query_data)
@@ -88,20 +88,29 @@ class LitchiConfigManager:
     def __init__(self, project_path: str) -> None:
         self.litchi_path = os.path.join(project_path, ".litchi")
         self.litchi_config_path = os.path.join(self.litchi_path, "litchi.yaml")
-        
         if not os.path.exists(self.litchi_path):
             os.makedirs(self.litchi_path)
-    
-        if not os.path.exists(self.litchi_config_path):
-            self.litchi_config = create_default_litchi_config()
-            save_config_to_yaml(self.litchi_config, self.litchi_config_path)
-        else:
+
+        if self.is_initialized():
             with open(self.litchi_config_path, 'r') as file:
                 yaml_content = yaml.safe_load(file)
                 self.litchi_config = LitchiConfig(**yaml_content)
+        else:
+            self.litchi_config = None
+    
+    def is_initialized(self) -> bool:
+        return os.path.exists(self.litchi_config_path)
+    
+    def create_config_yaml(self, language: str = "English"):
+        if self.is_initialized():
+            print("Litchi config already exists. Skip creating.")
+        else:        
+            self.litchi_config = create_default_litchi_config(language)
+            save_config_to_yaml(self.litchi_config, self.litchi_config_path)
+
 
     def print_config(self):
-        print(self.litchi_config)
+        print(self.litchi_config.json(indent=4))
 
 
 if __name__ == "__main__":

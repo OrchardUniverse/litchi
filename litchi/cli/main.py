@@ -1,41 +1,179 @@
+import click
 import os
+from . import init_command
 
-from index_util.index_manager import SourceFileIndexManager
-from source_util.source_file_manager import SourceFileManager
+from .utils import (
+    initialize_project,
+    update_source_files,
+    create_index,
+    show_index,
+    update_index,
+    search_index,
+    generate_code,
+)
 
-def main():
-    project_path = "/Users/tobe/code/orchard_universe/basket"
 
-    source_file_manager = SourceFileManager(project_path)
-    index_manager = SourceFileIndexManager(project_path)
 
-    """
-    # Step1: Generate source file
-    source_file_manager.generate_source_file_yaml()
+@click.group()
+def cli():
+    """Litchi CLI tool."""
+    pass
 
-    # Step2: Read source file and generate index
-    
-    language_files_map = source_file_manager.get_language_files_map()
 
-    for language, files in language_files_map.items():
-        for file_name in files:
-            index_manager.create_index(file_name, language)
-    
+# Initialize project command
+@click.command()
+@click.argument("project_path")
+@click.option("--language", default="", help="The language for indexing and LLM output.")
+def init(project_path, language):
+    """Initialize a new project with litchi files."""
+    init_command.init_project(project_path, language)
 
-    # Step3: Get related files
-    user_query = "How to set llm model in cli?"
-    llm_output_map = index_manager.get_related_files(user_query, 1)
-    files = llm_output_map["files"]
-    print(files)
-    """
 
-    # Step4: Chat with related files
-    user_query = "这个项目是用什么编程语言实现的？"
-    print(index_manager.chat_with_related_files(user_query, 1))
+# Source command group
+@click.group()
+def source():
+    """Manager the source files to read or create index."""
+    pass
 
-    
+@source.command("create")
+def source_create():
+    """Create the local file source_files.yaml."""
+    update_source_files()
 
-    
+@source.command("update")
+def source_update():
+    """Update the source_files.yaml with current source files."""
+    update_source_files()
+
+@source.command("diff")
+def source_diff():
+    """Show the diff of current source files and source_files.yaml."""
+    update_source_files()
+
+# Index command group
+@click.group()
+def index():
+    """Manager the indexes of source files."""
+    pass
+
+
+@index.command("create")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Create index for all files")
+def index_create(file_path, all):
+    """Create index for a specified file or all files."""
+    create_index(file_path, all)
+
+
+@index.command("show")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Show index for all files")
+def index_show(file_path, all):
+    """Show index for a specified file or all files."""
+    show_index(file_path, all)
+
+
+@index.command("diff")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Update index for all files")
+def index_diff(file_path, all):
+    """Show diff of index for a specified file or all files."""
+    update_index(file_path, all)
+
+@index.command("update")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Update index for all files")
+def index_update(file_path, all):
+    """Update index for a specified file or all files."""
+    update_index(file_path, all)
+
+@index.command("search")
+@click.argument("query")
+def index_search(query):
+    """Search the index with a query."""
+    search_index(query)
+
+@index.command("delete")
+@click.argument("file_path", required=False)
+@click.option("--all", is_flag=True, help="Update index for all files")
+def index_delete(file_path, all):
+    """Delete the index for a specified file or all files."""
+    update_index(file_path, all)
+
+@index.command("search")
+@click.argument("query")
+def copy(query):
+    """Search the index with a query."""
+    search_index(query)
+
+@index.command("copytosource")
+def index_copytosource():
+    """Copy the index content to source file's directory."""
+    search_index("")
+
+@index.command("deletefromsource")
+def index_deletefromsource():
+    """Delete the index content from source file's directory."""
+    search_index("")
+
+@click.command("gen")
+@click.argument("query")
+@click.option("--diff", is_flag=True, help="Show diff with existing code")
+@click.option("--without-index", is_flag=True, help="Generate code without updating index")
+def gen(query, diff, without_index):
+    """Generate the source code based on user's query and indexes."""
+    generate_code(query, diff, without_index)
+
+
+@click.command("chat")
+@click.argument("query")
+def chat(query):
+    """Ask questions or chat to the source codes with indexes."""
+    os.system(query)
+
+@click.command("execute")
+@click.argument("query")
+@click.option("--before-run", is_flag=True, help="Generate the code without executing")
+def execute(query):
+    """Generate and execute a script file from user's query."""
+    os.system(query)
+
+@click.command()
+def console():
+    """Use a user-friendly console interface for litchi."""
+    pass
+
+
+@click.command("watch")
+@click.argument("requirement_file")
+def watch(requirement_file):
+    """Watch the requirement file for changes and auto-generate code."""
+    # Implement file watching logic
+    pass
+
+
+# Adding commands to the main CLI group
+cli.add_command(init)
+cli.add_command(console)
+cli.add_command(source)
+cli.add_command(index)
+cli.add_command(gen)
+cli.add_command(chat)
+cli.add_command(execute)
+cli.add_command(watch)
+
+# Adding sub-commands to the respective command groups
+source.add_command(source_update)
+
+index.add_command(index_create)
+index.add_command(index_show)
+index.add_command(index_update)
+index.add_command(index_diff)
+index.add_command(index_search)
+index.add_command(index_delete)
+index.add_command(index_copytosource)
+index.add_command(index_deletefromsource)
+
 
 if __name__ == "__main__":
-    main()
+    cli()
