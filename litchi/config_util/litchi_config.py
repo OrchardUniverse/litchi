@@ -112,6 +112,18 @@ class LitchiConfigManager:
     def print_config(self):
         print(self.litchi_config.json(indent=4))
 
+    @staticmethod
+    def is_in_project_path() -> bool:
+        return os.path.exists("./.litchi/")
+    
+    @staticmethod
+    def make_sure_in_project_path():
+        if LitchiConfigManager.is_in_project_path():
+            pass
+        else:
+            print("Current not in a litchi project path, please cd to project root path or using litchi init.")
+            exit(-1)
+
 
 if __name__ == "__main__":
     config_manager = LitchiConfigManager("/Users/tobe/code/orchard_universe/basket/")

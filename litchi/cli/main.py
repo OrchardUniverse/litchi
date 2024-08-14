@@ -1,6 +1,7 @@
 import click
 import os
 from . import init_command
+from . import source_command
 
 from .utils import (
     initialize_project,
@@ -11,7 +12,6 @@ from .utils import (
     search_index,
     generate_code,
 )
-
 
 
 @click.group()
@@ -38,17 +38,17 @@ def source():
 @source.command("create")
 def source_create():
     """Create the local file source_files.yaml."""
-    update_source_files()
+    source_command.create_source_file()
 
 @source.command("update")
 def source_update():
     """Update the source_files.yaml with current source files."""
-    update_source_files()
+    source_command.update_source_file()
 
 @source.command("diff")
 def source_diff():
     """Show the diff of current source files and source_files.yaml."""
-    update_source_files()
+    source_command.diff_from_source_file()
 
 # Index command group
 @click.group()

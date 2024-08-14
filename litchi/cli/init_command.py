@@ -1,4 +1,4 @@
-from config_util.litchi_config import LitchiConfigManager
+from ..config_util.litchi_config import LitchiConfigManager
 
 def init_project(project_path, language):
     config_manager = LitchiConfigManager(project_path)
