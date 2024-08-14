@@ -1,3 +1,4 @@
 openai
 watchdog
-sqlite3
+click 
+pyyaml

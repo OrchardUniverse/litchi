@@ -55,11 +55,20 @@ def classify_files_by_extension(files, language_extensions):
     return classified_files
 
 
+def make_hashable(value):
+    if isinstance(value, dict):
+        return tuple((k, make_hashable(v)) for k, v in value.items())
+    elif isinstance(value, list):
+        return tuple(make_hashable(v) for v in value)
+    else:
+        return value
+        
 
 class SourceFileManager:
-    def __init__(self, project_path):
+    def __init__(self, project_path: str = "./"):
         self.project_path = project_path
         self.litchi_path = os.path.join(project_path, ".litchi")
+        self.source_file_path = os.path.join(self.litchi_path, 'source_files.yaml')
         self.setup_litchi_files()
 
     def setup_litchi_files(self):
@@ -92,28 +101,79 @@ class SourceFileManager:
         return classify_files_by_extension(files, language_extensions)
 
 
-    def generate_source_file_yaml(self):
+    def create_source_file_yaml(self):
+        if os.path.exists(self.source_file_path):
+            print(f"Source file yaml already exists in {self.source_file_path}, do not create again")
+        else:
+            self.update_source_file_yaml()
+
+    def update_source_file_yaml(self):
         file_util = FileUtil(self.project_path)
         file_list = file_util.get_files()
 
         language_file_map = self.generate_language_file_map(file_list)
 
-        source_files_yaml = os.path.join(self.litchi_path, 'source_files.yaml')
-
-        print(f"Save the source file yaml in {source_files_yaml}")
-        save_to_yaml(language_file_map, source_files_yaml)
+        print(f"Save the source file yaml in {self.source_file_path}")
+        save_to_yaml(language_file_map, self.source_file_path)
 
 
     def print_language_and_file(self):
-        source_files_yaml = os.path.join(self.litchi_path, 'source_files.yaml')
-        classified_files = read_from_yaml(source_files_yaml)
+        classified_files = read_from_yaml(self.source_file_path)
 
         for language, files in classified_files.items():
             print(f"Language: {language}")
             for file_name in files:
                 print(f"  - {file_name}")
-
+    
+    def get_language(self, file_name):
+        language_file_map = read_from_yaml(self.source_file_path)
+        for language, files in language_file_map.items():
+            if file_name in files:
+                return language
+    
     def get_language_files_map(self):
-        source_files_yaml = os.path.join(self.litchi_path, 'source_files.yaml')
-        classified_files = read_from_yaml(source_files_yaml)
-        return classified_files
+        return read_from_yaml(self.source_file_path)
+
+    def get_source_file_count(self):
+        count = 0
+        language_files_map = self.get_language_files_map()
+        for language, files in language_files_map.items():
+            count += len(files)
+        return count
+
+
+    def get_latest_language_files_map(self):
+        file_util = FileUtil(self.project_path)
+        file_list = file_util.get_files()
+        language_file_map = self.generate_language_file_map(file_list)
+        return language_file_map
+    
+    def print_source_file_diff(self):
+        yaml1 = make_hashable(read_from_yaml(self.source_file_path))
+        yaml2 = make_hashable(self.get_latest_language_files_map())
+
+        diff_output = []
+
+        # Compare the two YAML objects
+        if yaml1 != yaml2:
+            set1 = set([yaml1]) if isinstance(yaml1, tuple) else set(make_hashable(yaml1))
+            set2 = set([yaml2]) if isinstance(yaml2, tuple) else set(make_hashable(yaml2))
+
+
+            diff1 = set1 - set2
+            diff2 = set2 - set1
+
+            for diff in diff1:
+                diff_output.append(f"- {diff}")
+            for diff in diff2:
+                diff_output.append(f"+ {diff}")
+        else:
+            diff_output.append("The files are identical.")
+
+        """ TODO: change to better display
+        - (('Python', ('basket/cli.py', 'basket/openai_util/openai_util.py')),)
+        + (('Python', ('basket/cli.py', 'basket/basket_config/auths_config.py', 'basket/basket_config/maas_config.py', 'basket/openai_util/openai_util.py')),)
+        (tobepython)
+        """
+        for diff in diff_output:
+            print(diff)
