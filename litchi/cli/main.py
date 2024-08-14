@@ -70,41 +70,35 @@ def index_create(file_path, all):
 @click.option("--all", is_flag=True, help="Show index for all files")
 def index_show(file_path, all):
     """Show index for a specified file or all files."""
-    show_index(file_path, all)
-
+    index_command.show_index(file_path, all)
 
 @index.command("diff")
 @click.argument("file_path", required=False)
 @click.option("--all", is_flag=True, help="Update index for all files")
 def index_diff(file_path, all):
     """Show diff of index for a specified file or all files."""
-    update_index(file_path, all)
+    index_command.show_index_diff(file_path, all)
 
 @index.command("update")
 @click.argument("file_path", required=False)
 @click.option("--all", is_flag=True, help="Update index for all files")
 def index_update(file_path, all):
     """Update index for a specified file or all files."""
-    update_index(file_path, all)
-
-@index.command("search")
-@click.argument("query")
-def index_search(query):
-    """Search the index with a query."""
-    search_index(query)
+    index_command.update_index(file_path, all)
 
 @index.command("delete")
 @click.argument("file_path", required=False)
 @click.option("--all", is_flag=True, help="Update index for all files")
 def index_delete(file_path, all):
     """Delete the index for a specified file or all files."""
-    update_index(file_path, all)
+    index_command.delete_index(file_path, all)
 
-@index.command("search")
+@index.command("query")
 @click.argument("query")
-def copy(query):
-    """Search the index with a query."""
-    search_index(query)
+def index_query(query):
+    """Query to get the related indexes."""
+    index_command.query_indexes(query)
+
 
 @index.command("copytosource")
 def index_copytosource():
@@ -133,7 +127,7 @@ def chat(query):
 
 @click.command("execute")
 @click.argument("query")
-@click.option("--before-run", is_flag=True, help="Generate the code without executing")
+@click.option("--dry-run", is_flag=True, help="Generate the code without executing")
 def execute(query):
     """Generate and execute a script file from user's query."""
     os.system(query)
@@ -141,15 +135,14 @@ def execute(query):
 @click.command()
 def console():
     """Use a user-friendly console interface for litchi."""
-    pass
+    print("The method is not supported yet")
 
 
 @click.command("watch")
 @click.argument("requirement_file")
 def watch(requirement_file):
     """Watch the requirement file for changes and auto-generate code."""
-    # Implement file watching logic
-    pass
+    print("The method is not supported yet")
 
 
 # Adding commands to the main CLI group
@@ -169,8 +162,9 @@ index.add_command(index_create)
 index.add_command(index_show)
 index.add_command(index_update)
 index.add_command(index_diff)
-index.add_command(index_search)
 index.add_command(index_delete)
+index.add_command(index_query)
+
 index.add_command(index_copytosource)
 index.add_command(index_deletefromsource)
 

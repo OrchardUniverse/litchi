@@ -11,6 +11,8 @@ from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
 from .prompt_util import generate_prompt, generate_get_related_source_files_prompt, generate_chat_with_realted_source_files_prompt
 
+from ..source_util.source_file_manager import SourceFileManager
+
 def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
@@ -180,24 +182,96 @@ class SourceFileIndexManager:
         return self.db_util.row_exists(file_path)
     
     def create_index(self, file_path, programming_language="Unknown"):
-        
         if self.is_index_existed(file_path):
             print("The index exists, skip creating.")
+            return None
+        else:
+            return self.create_new_index(file_path, programming_language)
+        
+    def create_new_index(self, file_path, programming_language="Unknown"):
+        print(f"Try to create the index for {file_path}")
+        absolute_file_path = os.path.join(self.project_dir, file_path)
+        llm_output_json, tokens = llm_explain_code(programming_language, absolute_file_path)
+        return self.generate_source_file_index(file_path, llm_output_json, tokens)
+
+
+    def create_index_and_save(self, file_path, programming_language="Unknown"):
+        index = self.create_index(file_path, programming_language)
+        if index != None:
+            self.db_util.insert_index(index)
+
+    def get_index(self, file_path):
+        return self.db_util.select_row(file_path)
+
+    
+    def get_all_indexes(self):
+        return self.db_util.select_all_rows()
+    
+    def print_index_diff(self, file_path):
+        index = self.db_util.select_row(file_path)
+
+        if index is None:
+            print("Index does not exist.")
             return
         else:
-            print(f"Try to create the index for {file_path}")
             absolute_file_path = os.path.join(self.project_dir, file_path)
-            llm_output_json, tokens = llm_explain_code(programming_language, absolute_file_path)
-            source_file_index = self.generate_source_file_index(file_path, llm_output_json, tokens)
-            self.db_util.insert_index(source_file_index)
+            md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
+            if index.md5 != md5_hash:
+                print(f"The file has been changed and need to update index: {file_path}")
+                print(f"There are lines of code changes(index vs current): {index.lines} vs {line_count}")
+            else:
+                print(f"The file has not been changed and no index diff: {file_path}")
+
+    def get_index_diff_files(self):
+        index_diff_files = []
+        indexes = self.get_all_indexes()
+
+        for index in indexes:
+            absolute_file_path = os.path.join(self.project_dir, index.file)
+            md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
+            if index.md5 != md5_hash:
+                index_diff_files.append(index.file)
+
+        return index_diff_files
+
+
+    def is_index_diff(self, file_path):
+        index = self.get_index(file_path)
+
+        absolute_file_path = os.path.join(self.project_dir, file_path)
+        md5_hash, _ = compute_md5_and_count_lines(absolute_file_path)
+        return index.md5 != md5_hash
 
     def update_index(self, file_path):
-        pass
+        if not self.is_index_existed(file_path):
+            print(f"Index for {file_path} does not exist.")
+            return
+
+        if self.is_index_diff(file_path):
+            source_file_manager = SourceFileManager(self.project_dir)
+            language = source_file_manager.get_language(file_path)
+
+            new_index = self.create_new_index(file_path, language)
+            self.db_util.update_index(new_index)
+
 
     def delete_index(self, file_path):
-        pass
+        print(f"Try to delete the index of {file_path}")
+
+        if not self.is_index_existed(file_path):
+            print(f"Index for {file_path} does not exist.")
+            return
+        self.db_util.delete_row(file_path)
+
+    
+
 
     def get_related_files(self, user_query, max_file_count=10):
+        file_reason_list = self.get_related_file_reason_list(user_query, max_file_count)
+        return [file_reason["file"] for file_reason in file_reason_list]
+
+
+    def get_related_file_reason_list(self, user_query, max_file_count=10):
         source_file_indexes = self.db_util.select_all_rows()
         
         prompt = generate_get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
@@ -206,7 +280,9 @@ class SourceFileIndexManager:
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
-        return json.loads(json_string)["files"]
+        # TODO: Return the reason about files and query
+
+        return json.loads(json_string)["related_files"]
 
     def chat_with_related_files(self, user_query, max_file_count=10):
         files = self.get_related_files(user_query, max_file_count)

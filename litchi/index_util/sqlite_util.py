@@ -12,6 +12,10 @@ class SourceCodeIndex(BaseModel):
     classes: str
     tokens: int
 
+    def __str__(self):
+        # Use the `json()` method with an indent
+        return self.json(indent=4)
+
 # Define the SqliteUtil class
 class SqliteUtil:
     def __init__(self, db_name):
@@ -45,6 +49,9 @@ class SqliteUtil:
 
     def insert_index(self, index: SourceCodeIndex):
         self.insert_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.tokens)
+
+    def update_index(self, index: SourceCodeIndex):
+        self.update_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.tokens)
 
     def update_row(self, file, lines=None, md5=None, name=None, purpose=None, classes=None, tokens=None):
         query = "UPDATE indexes SET "
@@ -107,6 +114,11 @@ class SqliteUtil:
             "tokens": row[6]
         }) for row in rows]
 
+    def delete_row(self, file: str):
+        """Delete a row from the indexes table based on the file name."""
+        self.cursor.execute("DELETE FROM indexes WHERE file = ?", (file,))
+        self.connection.commit()
+        
     def close(self):
         self.connection.close()
 

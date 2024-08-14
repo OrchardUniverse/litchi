@@ -85,7 +85,7 @@ def save_config_to_yaml(litchi_config: LitchiConfig, file_path: str):
 
 
 class LitchiConfigManager:
-    def __init__(self, project_path: str) -> None:
+    def __init__(self, project_path: str = "./") -> None:
         self.litchi_path = os.path.join(project_path, ".litchi")
         self.litchi_config_path = os.path.join(self.litchi_path, "litchi.yaml")
         if not os.path.exists(self.litchi_path):
