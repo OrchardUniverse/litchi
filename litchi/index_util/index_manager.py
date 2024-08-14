@@ -1,6 +1,4 @@
 
-import openai
-from openai import OpenAI
 import os
 import json
 import sqlite3
@@ -10,8 +8,10 @@ import hashlib
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
 from .prompt_util import PromptUtil
+from .llm_util import LlmUtil
 
 from ..source_util.source_file_manager import SourceFileManager
+from ..config_util.litchi_config import LitchiConfigManager
 
 def print_json(input_json: str) -> None:
     try:
@@ -27,54 +27,6 @@ def read_file(file_path):
     return code
 
 
-def chat_with_llm(user_prompt):
-
-    client = OpenAI(
-        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        api_key=os.environ.get("OPENAI_API_KEY")
-    )
-
-    completion = client.chat.completions.create(
-        #model="gpt-4-1106-preview",
-        model="gpt-3.5-turbo-1106",
-        messages=[
-            {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
-            {"role": "user", "content": user_prompt}
-        ],
-        response_format={"type": "json_object"}
-    )
-
-    json_string = completion.choices[0].message.content
-    tokens = completion.usage.total_tokens
-
-    print(f"LLM request:\n {user_prompt}")
-    print(f"LLM response:\n {completion}")
-
-    return json_string, tokens
-
-def adhoc_chat_with_llm(user_prompt):
-    client = OpenAI(
-        base_url=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"),
-        api_key=os.environ.get("OPENAI_API_KEY")
-    )
-
-    completion = client.chat.completions.create(
-        #model="gpt-4-1106-preview",
-        model="gpt-3.5-turbo-1106",
-        messages=[
-            {"role": "system", "content": "You are a helpful assitant can summarize the source code and give the user a reasonable and understandable response."},
-            #  Please always response in Chinese.
-            {"role": "user", "content": user_prompt}
-        ]
-    )
-
-    json_string = completion.choices[0].message.content
-    tokens = completion.usage.total_tokens
-
-    print(f"LLM request:\n {user_prompt}")
-    print(f"LLM response:\n {completion}")
-
-    return json_string, tokens
 
 def save_json_to_file(json_str, file_path):
     """
@@ -157,6 +109,9 @@ class SourceFileIndexManager:
     def __init__(self, project_dir: str = "./") -> None:
         self.project_dir = project_dir
         self.prompt_util = PromptUtil(project_dir)
+        self.llm_util = LlmUtil(project_dir)
+        self.config_manager = LitchiConfigManager(project_dir)
+
 
         litchi_path = os.path.join(project_dir, ".litchi")
         if not os.path.exists(litchi_path):
@@ -169,7 +124,7 @@ class SourceFileIndexManager:
         code = read_file(file_path)
         prompt = self.prompt_util.analyse_source_file_prompt(programming_language, code)
         
-        llm_output_json, tokens = chat_with_llm(prompt)
+        llm_output_json, tokens = self.llm_util.chat_with_llm(prompt)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
@@ -292,9 +247,9 @@ class SourceFileIndexManager:
     def get_related_file_reason_list(self, user_query, max_file_count=10):
         source_file_indexes = self.db_util.select_all_rows()
         
-        prompt = prompt_util.get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
+        prompt = self.prompt_util.get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
         
-        llm_output_json, tokens = chat_with_llm(prompt)
+        llm_output_json, tokens = self.llm_util.chat_with_llm(prompt)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
@@ -302,12 +257,14 @@ class SourceFileIndexManager:
 
         return json.loads(json_string)["related_files"]
 
-    def chat_with_related_files(self, user_query, max_file_count=10):
+    def chat_with_related_files(self, user_query):
+        max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
+
         files = self.get_related_files(user_query, max_file_count)
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
-        prompt = prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
+        prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
-        llm_output, tokens = adhoc_chat_with_llm(prompt)
+        llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
         return llm_output
 
     def generate_source_file_index_name(self, source_file_path: str) -> str:

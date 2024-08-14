@@ -126,3 +126,14 @@ def delete_indexes_from_source_code():
     indexes = index_manager.get_all_indexes()
     for index in indexes:
         index_manager.delete_index_from_source_code(index)
+
+
+def chat_with_indexes(user_query):
+    LitchiConfigManager.make_sure_in_project_path()
+
+    if user_query == None or user_query == "":
+        print("Please input a query to chat with indexes.")
+        return
+    
+    index_manager = SourceFileIndexManager()
+    print(index_manager.chat_with_related_files(user_query))        

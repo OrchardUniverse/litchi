@@ -113,7 +113,7 @@ def gen(query, diff, without_index):
 @click.argument("query")
 def chat(query):
     """Ask questions or chat to the source codes with indexes."""
-    os.system(query)
+    index_command.chat_with_indexes(query)
 
 @click.command("execute")
 @click.argument("query")

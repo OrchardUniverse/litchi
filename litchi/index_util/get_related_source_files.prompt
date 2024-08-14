@@ -16,7 +16,7 @@ Here are the source code files and their names and purposes:
 {% endfor %}
 ]
 
-Return at most {{ max_file_count }} file names and the reaons that are most relevant to the user's query.
+Return at most {{ max_file_count }} file names and the reaons that are most relevant to the user's query. The output file should be the same complete file path as the following source code files.
 
 Make sure the JSON output is structured as follows:
 
