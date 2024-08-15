@@ -33,7 +33,7 @@ pip install .
 
 ## Usage
 
-Initialize the project and generate directory `./litchi/`. You can input the language as "Chinese" so that it will create index and query in Chinese.
+Initialize the project and generate directory `./.litchi/`. You can input the language as "Chinese" so that it will create index and query in Chinese.
 
 ```
 litchi init $PROJECT_PATH
@@ -41,7 +41,7 @@ litchi init $PROJECT_PATH
 litchi init --language Chinese $PROJECT_PATH
 ```
 
-Go to the project directory and create source file `./litchi/source_files.yaml`. You can edit `./.litchi/ignore_rules.yaml` to choose the expected source files.
+Go to the project directory and create source file `./.litchi/source_files.yaml`. You can edit `./.litchi/ignore_rules.yaml` to choose the expected source files.
 
 ```
 litchi source create
