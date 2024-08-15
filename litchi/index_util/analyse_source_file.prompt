@@ -21,6 +21,12 @@ Make sure the JSON output is structured as follows:
       "name": "string",
       "purpose": "string"
     }
+  ],
+    "functions": [
+    {
+      "name": "string",
+      "purpose": "string"
+    }
   ]
 }
 ```

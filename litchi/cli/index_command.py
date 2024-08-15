@@ -16,6 +16,7 @@ def create_index(file_path, is_all):
     if file_path != None:
         language = source_file_manager.get_language(file_path)
         index_manager.create_index_and_save(file_path, language)
+        index_manager.print_index(file_path)
     else:
         file_count = source_file_manager.get_source_file_count()
         prompt = f"Are you sure to create index for {file_count} files? (yes/no): "

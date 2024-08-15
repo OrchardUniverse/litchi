@@ -129,11 +129,12 @@ class SourceFileIndexManager:
         md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
 
         classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
+        functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
 
         # TODO: Make sure to get attributes from llm output json
         return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
                                 name=llm_output_json['name'], purpose=llm_output_json['purpose'], 
-                                classes=classes, tokens = tokens)
+                                classes=classes, functions=functions, tokens = tokens)
 
     def is_index_existed(self, file_path) -> bool:
         return self.db_util.row_exists(file_path)
