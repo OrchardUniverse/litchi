@@ -3,6 +3,7 @@ import os
 from . import init_command
 from . import source_command
 from . import index_command
+from . import chat_command
 
 
 @click.group()
@@ -111,9 +112,10 @@ def gen(query, diff, without_index):
 
 @click.command("chat")
 @click.argument("query")
-def chat(query):
+@click.option("--without-index", is_flag=True, help="Generate code without updating index")
+def chat(query, without_index):
     """Ask questions or chat to the source codes with indexes."""
-    index_command.chat_with_indexes(query)
+    chat_command.chat(query, without_index)
 
 @click.command("execute")
 @click.argument("query")

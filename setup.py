@@ -13,10 +13,10 @@ setup(
     packages=find_packages(exclude=["tests*"]),
     install_requires=requirements,
     author="Orchard Universe",
-    description="",
+    description="Litchi is yet another coding assistant powered by LLM.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="",
+    url="https://github.com/OrchardUniverse/litchi",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

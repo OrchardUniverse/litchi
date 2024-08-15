@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
+import json
 
 # Define the Pydantic model matching the schema
 class SourceCodeIndex(BaseModel):
@@ -10,11 +11,20 @@ class SourceCodeIndex(BaseModel):
     name: str
     purpose: str
     classes: str
+    functions: str
     tokens: int
+    
+    def print(self) -> None:
+        parsed_json = json.loads(self.json())
 
-    def __str__(self):
-        # Use the `json()` method with an indent
-        return self.json(indent=4)
+        # Convert classes string to json array
+        parsed_json["classes"] = json.loads(parsed_json["classes"])
+        parsed_json["functions"] = json.loads(parsed_json["functions"])
+
+        # Print non-ASCII string instead unicode for multiple languages
+        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=2)
+        print(pretty_json)
+
 
 # Define the SqliteUtil class
 class SqliteUtil:
@@ -32,28 +42,29 @@ class SqliteUtil:
                 name TEXT,
                 purpose TEXT,
                 classes TEXT,
+                functions TEXT,
                 tokens INTEGER
             )
         ''')
         self.connection.commit()
 
-    def insert_row(self, file, lines, md5, name, purpose, classes, tokens):
+    def insert_row(self, file, lines, md5, name, purpose, classes, functions, tokens):
         try:
             self.cursor.execute('''
-                INSERT INTO indexes (file, lines, md5, name, purpose, classes, tokens)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (file, lines, md5, name, purpose, classes, tokens))
+                INSERT INTO indexes (file, lines, md5, name, purpose, classes, functions, tokens)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (file, lines, md5, name, purpose, classes, functions, tokens))
             self.connection.commit()
         except sqlite3.IntegrityError as e:
             print(f"Error inserting row: {e}")
 
     def insert_index(self, index: SourceCodeIndex):
-        self.insert_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.tokens)
+        self.insert_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.functions, index.tokens)
 
     def update_index(self, index: SourceCodeIndex):
-        self.update_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.tokens)
+        self.update_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.functions, index.tokens)
 
-    def update_row(self, file, lines=None, md5=None, name=None, purpose=None, classes=None, tokens=None):
+    def update_row(self, file, lines=None, md5=None, name=None, purpose=None, classes=None, functions=None, tokens=None):
         query = "UPDATE indexes SET "
         params = []
         if lines is not None:
@@ -71,6 +82,9 @@ class SqliteUtil:
         if classes is not None:
             query += "classes = ?, "
             params.append(classes)
+        if functions is not None:
+            query += "functions = ?, "
+            params.append(functions)            
         if tokens is not None:
             query += "tokens = ?, "
             params.append(tokens)
@@ -97,7 +111,8 @@ class SqliteUtil:
                 "name": row[3],
                 "purpose": row[4],
                 "classes": row[5],
-                "tokens": row[6]
+                "functions": row[6],
+                "tokens": row[7]
             })
         return None
 
@@ -111,8 +126,14 @@ class SqliteUtil:
             "name": row[3],
             "purpose": row[4],
             "classes": row[5],
-            "tokens": row[6]
+            "functions": row[6],
+            "tokens": row[7]
         }) for row in rows]
+    
+    def count_all_tokens(self) -> List[SourceCodeIndex]:
+        self.cursor.execute("SELECT sum(tokens) FROM indexes")
+        rows = self.cursor.fetchall()
+        return rows[0][0]
 
     def delete_row(self, file: str):
         """Delete a row from the indexes table based on the file name."""

@@ -24,7 +24,7 @@ class LlmUtil:
             #model="gpt-4-1106-preview",
             model=self.index_model,
             messages=[
-                {"role": "system", "content": "As a professional source code expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
+                {"role": "system", "content": "As a professional programming expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
                 {"role": "user", "content": user_prompt}
             ],
             response_format={"type": "json_object"}
@@ -47,7 +47,7 @@ class LlmUtil:
         completion = client.chat.completions.create(
             model=self.query_model,
             messages=[
-                {"role": "system", "content": "You are a helpful assitant can summarize the source code and give the user a reasonable and understandable response."},
+                {"role": "system", "content": "You are a helpful assitant. You are good at programming and understand the given source code. Your goal is to understand user's query and provide reasonable and understandable response."},
                 #  Please always response in Chinese.
                 {"role": "user", "content": user_prompt}
             ]

@@ -1,0 +1,7 @@
+Here is the user's query:
+
+```
+{{ query }}
+```
+
+Understand the user's query and give a reasonable response.

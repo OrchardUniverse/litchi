@@ -1,31 +1,39 @@
-# litchi
+# Litchi
 
-The AI coding assistant powered by LLM.
+## Introduction
 
-* 使用大模型理解源码含义和生成源代码。
-* 为源码文件生成索引，支持语义搜索和检索增强查询。
-* 自动过滤非源码文件和识别编程语言，批量自动化处理项目文件。
+`Litchi` is yet another coding assistant powered by LLM.
 
+Unlike other programming assistants, `litchi` supports global indexing across all source files in projects and code-based retrieval augmented generation. It makes features like chat-to-code and code-generation more effective and practical.
 
 ## Features
 
-* [x] 语义搜索和检索增强查询
-* [x] 自动过滤非源码文件和识别编程语言
-* [x] 批量自动化处理项目文件
-* [x] 使用大模型理解源码含义和生成源代码
-* [x] 为源码文件生成索引
-* [ ] 支持 Chat to Code
-* [ ] 支持基于需求文本的代码生成
+`Litchi` has more features than other coding assistants or copilot plugins because it is integrated with indexes which can be used as standalone tools.
+
+* Support indexing source code files for the whole project.
+* Manager any code index by creating, updating, showing, and searching.
+* Retrieval augmented generation with source code for user's query.
+* Addoc chat to code which will retrieval related source files to query LLM.
+* Generate code based on user's query and related source files.
+* One step to filter the source files which can be customed for different projects.
+* Compatible with all large language models like ChatGPT and others.
+* Compatible with public and private MaaS which can be deployed in local.
 
 ## Install
 
+Install the `litchi` command as a standard Python package.
+
 ```
+git clone https://github.com/OrchardUniverse/litchi.git
+
+cd ./litchi/
+
 pip install .
 ```
 
 ## Usage
 
-初始化项目，生成 `./litchi/` 目录和源码文件等。
+Initialize the project and generate directory `./.litchi/`. You can input the language as "Chinese" so that it will create index and query in Chinese.
 
 ```
 litchi init $PROJECT_PATH
@@ -33,13 +41,13 @@ litchi init $PROJECT_PATH
 litchi init --language Chinese $PROJECT_PATH
 ```
 
-遍历源码文件，更新 `./litchi/source_files.yaml` 文件。
+Go to the project directory and create source file `./.litchi/source_files.yaml`. You can edit `./.litchi/ignore_rules.yaml` to choose the expected source files.
 
 ```
-litchi source update
+litchi source create
 ```
 
-创建索引，用户可以针对指定文件或整个项目源码创建索引。
+Create the index for single file or all source files in project.
 
 ```
 litchi index create $FILE_PATH
@@ -47,7 +55,7 @@ litchi index create $FILE_PATH
 litchi index create --all
 ```
 
-查看索引，用户可以查看指定文件或所有索引信息。
+Show the detail of the index of single file or all indexes.
 
 ```
 litchi index show $FILE_PATH
@@ -55,73 +63,16 @@ litchi index show $FILE_PATH
 litchi index show --all
 ```
 
-更新索引，用户可以更新指定文件或所有索引信息。
+You can input a query and get the related indexes.
 
 ```
-litchi index update $FILE_PATH
-
-litchi index update --all
+litchi index query $QUERY
 ```
 
-查询相关索引，用户可以基于查询语句来提取相关索引信息。
+If you want to read the source code with index, use the following commands which will copy the readable index file next to the source file.
 
 ```
-litchi index search $QUERY
-```
+litchi index copy-to-source
 
-生成代码，用户可以基于需求文本生成代码。
-
-```
-litchi code generate $QUERY
-
-litchi code generate $QUERY --diff
-
-litchi code generate $QUERY --without-index
-```
-
-监听文件变化，用户可以监听文件变化并自动生成代码。
-
-```
-litchi code watch $REQUIREMENT_FILE
-
-
-自动生成脚本文件并执行。
-
-```
-litchi code execute $QUERY
-```
-
-
-
-
-
-
-
-
-## Index
-
-```
-sqlite3 ./.litchi/source_file_index.db
-```
-
-```
-select * from indexes;
-```
-
-## Size
-
-```
-sqlite3 ./.litchi/source_file_index.db
-```
-
-
-
-## Tokens
-
-```
-sqlite3 ./.litchi/source_file_index.db
-```
-
-```
-select sum(tokens) from indexes;
+litchi index delete-from-source
 ```

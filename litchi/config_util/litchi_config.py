@@ -30,14 +30,6 @@ class LitchiConfig(BaseModel):
     Index: Index
     Query: Query
 
-def print_json(input_json: str) -> None:
-    try:
-        parsed_json = json.loads(input_json)
-        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=4)
-        print(pretty_json)
-    except json.JSONDecodeError as e:
-        print(f"Invalid json and get exception: {e}")
-
 def create_litchi_config(os_data: dict, llm_data: dict, index_data: dict, query_data: dict) -> LitchiConfig:
     os = OS(**os_data)
     llm = LLM(**llm_data)
@@ -119,7 +111,7 @@ class LitchiConfigManager:
 
 
     def print_config(self):
-        print_json(self.litchi_config.json(indent=4))
+        print(self.litchi_config.json(indent=4))
 
     @staticmethod
     def is_in_project_path() -> bool:

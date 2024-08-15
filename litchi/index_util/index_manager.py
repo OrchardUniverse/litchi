@@ -13,19 +13,10 @@ from .llm_util import LlmUtil
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
 
-def print_json(input_json: str) -> None:
-    try:
-        parsed_json = json.loads(input_json)
-        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=4)
-        print(pretty_json)
-    except json.JSONDecodeError as e:
-        print(f"Invalid json and get exception: {e}")
-
 def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
     return code
-
 
 
 def save_json_to_file(json_str, file_path):
@@ -137,12 +128,13 @@ class SourceFileIndexManager:
         absolute_file_path = os.path.join(self.project_dir, file)
         md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
 
-        classes = json.dumps(llm_output_json['classes'])
+        classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
+        functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
 
         # TODO: Make sure to get attributes from llm output json
         return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
                                 name=llm_output_json['name'], purpose=llm_output_json['purpose'], 
-                                classes=classes, tokens = tokens)
+                                classes=classes, functions=functions, tokens = tokens)
 
     def is_index_existed(self, file_path) -> bool:
         return self.db_util.row_exists(file_path)
@@ -161,10 +153,15 @@ class SourceFileIndexManager:
         return self.generate_source_file_index(file_path, llm_output_json, tokens)
 
 
-    def create_index_and_save(self, file_path, programming_language="Unknown"):
+    def count_indexes_tokens(self) -> int:
+        return self.db_util.count_all_tokens()
+
+
+    def create_index_and_save(self, file_path, programming_language="Unknown") -> SourceCodeIndex:
         index = self.create_index(file_path, programming_language)
         if index != None:
             self.db_util.insert_index(index)
+        return index
 
     def get_index(self, file_path):
         return self.db_util.select_row(file_path)
@@ -175,7 +172,7 @@ class SourceFileIndexManager:
         if index is None:
             print("Index does not exist.")
         else:
-            print_json(index.json())
+            index.print()
     
     def get_all_indexes(self):
         return self.db_util.select_all_rows()
@@ -267,6 +264,12 @@ class SourceFileIndexManager:
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
         return llm_output
 
+    def chat_with_model(self, user_query):
+        prompt = self.prompt_util.chat_with_model(user_query)
+
+        llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
+        return llm_output
+    
     def generate_source_file_index_name(self, source_file_path: str) -> str:
     
         dir_path = os.path.dirname(source_file_path)
