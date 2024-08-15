@@ -58,3 +58,17 @@ class PromptUtil:
         }
         prompt = template.render(params)
         return self.append_output_language_prompt(prompt, self.query_language)
+
+    def chat_with_model(self, query):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        prompt_file = os.path.join(script_dir, "chat_with_model.prompt")
+
+        with open(prompt_file, 'r') as file:
+            template_content = file.read()
+
+        template = Template(template_content)
+        params = {
+            'query': query
+        }
+        prompt = template.render(params)
+        return self.append_output_language_prompt(prompt, self.query_language)

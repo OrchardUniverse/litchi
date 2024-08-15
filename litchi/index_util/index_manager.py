@@ -264,6 +264,12 @@ class SourceFileIndexManager:
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
         return llm_output
 
+    def chat_with_model(self, user_query):
+        prompt = self.prompt_util.chat_with_model(user_query)
+
+        llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
+        return llm_output
+    
     def generate_source_file_index_name(self, source_file_path: str) -> str:
     
         dir_path = os.path.dirname(source_file_path)
