@@ -122,14 +122,32 @@ class SourceFileIndexManager:
         #output_json_file = "llm_analyse_code_output.json"
         #save_json_to_file(json, output_json_file)
         
-        return json.loads(json_string), tokens
+        try:
+            output_json = json.loads(json_string)
+        except Exception as e:
+            print("Error: Fail to parse llm output as json, set output_json as empty")
+            output_json = {
+                "name": file_path,
+                "purpose": "Unknown",
+                "classes": [],
+                "functions": []
+            }
+            print(e)
+        return output_json, tokens
 
     def generate_source_file_index(self, file, llm_output_json, tokens) -> SourceCodeIndex:
         absolute_file_path = os.path.join(self.project_dir, file)
         md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
 
-        classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
-        functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
+        try:
+            classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
+        except Exception as e:
+            classes = "[]"
+
+        try:
+            functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
+        except Exception as e:
+            functions = "[]"
 
         # TODO: Make sure to get attributes from llm output json
         return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
