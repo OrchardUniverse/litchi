@@ -1,3 +1,4 @@
+from prettytable import PrettyTable
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
@@ -15,8 +16,10 @@ def create_index(file_path, is_all):
 
     if file_path != None:
         language = source_file_manager.get_language(file_path)
-        index_manager.create_index_and_save(file_path, language)
-        index_manager.print_index(file_path)
+        index = index_manager.create_index_and_save(file_path, language)
+        if index != None:
+            index.print()
+            print(f"Create index by consuming token: {index.tokens}")
     else:
         file_count = source_file_manager.get_source_file_count()
         prompt = f"Are you sure to create index for {file_count} files? (yes/no): "
@@ -26,6 +29,8 @@ def create_index(file_path, is_all):
             for language, files in language_files_map.items():
                 for file_name in files:
                     index_manager.create_index_and_save(file_name, language)
+
+            print(f"Create all indexes by consuming token: {index_manager.count_indexes_tokens()}")
         else:
             print("Cancel creating index.")
 
@@ -107,8 +112,14 @@ def query_indexes(user_query):
 
     file_reason_list = index_manager.get_related_file_reason_list(user_query, max_retrival_size)
 
+    # Print the result in a table
+    table = PrettyTable()
+    table.field_names = ["File", "Reason"]
     for file_reason_map in file_reason_list:
-        print(f"File: {file_reason_map['file']}\nReason: {file_reason_map['reason']}")
+        #print(f"File: {file_reason_map['file']}\nReason: {file_reason_map['reason']}")
+        table.add_row([file_reason_map['file'], file_reason_map['reason']])
+
+    print(table)
 
 
 def copy_indexes_to_source_code():

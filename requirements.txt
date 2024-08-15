@@ -2,3 +2,4 @@ openai
 watchdog
 click 
 pyyaml
+prettytable

@@ -129,6 +129,11 @@ class SqliteUtil:
             "functions": row[6],
             "tokens": row[7]
         }) for row in rows]
+    
+    def count_all_tokens(self) -> List[SourceCodeIndex]:
+        self.cursor.execute("SELECT sum(tokens) FROM indexes")
+        rows = self.cursor.fetchall()
+        return rows[0][0]
 
     def delete_row(self, file: str):
         """Delete a row from the indexes table based on the file name."""

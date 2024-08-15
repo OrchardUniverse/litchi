@@ -153,10 +153,15 @@ class SourceFileIndexManager:
         return self.generate_source_file_index(file_path, llm_output_json, tokens)
 
 
-    def create_index_and_save(self, file_path, programming_language="Unknown"):
+    def count_indexes_tokens(self) -> int:
+        return self.db_util.count_all_tokens()
+
+
+    def create_index_and_save(self, file_path, programming_language="Unknown") -> SourceCodeIndex:
         index = self.create_index(file_path, programming_language)
         if index != None:
             self.db_util.insert_index(index)
+        return index
 
     def get_index(self, file_path):
         return self.db_util.select_row(file_path)
