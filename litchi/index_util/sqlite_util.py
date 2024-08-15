@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
+import json
 
 # Define the Pydantic model matching the schema
 class SourceCodeIndex(BaseModel):
@@ -15,6 +16,14 @@ class SourceCodeIndex(BaseModel):
     def __str__(self):
         # Use the `json()` method with an indent
         return self.json(indent=4)
+    
+    def print(self) -> None:
+        parsed_json = json.loads(self.json())
+        parsed_json["classes"] = json.loads(parsed_json["classes"])
+
+        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=2)
+        print(pretty_json)
+
 
 # Define the SqliteUtil class
 class SqliteUtil:

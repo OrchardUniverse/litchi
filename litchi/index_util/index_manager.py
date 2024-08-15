@@ -13,19 +13,10 @@ from .llm_util import LlmUtil
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
 
-def print_json(input_json: str) -> None:
-    try:
-        parsed_json = json.loads(input_json)
-        pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=4)
-        print(pretty_json)
-    except json.JSONDecodeError as e:
-        print(f"Invalid json and get exception: {e}")
-
 def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
     return code
-
 
 
 def save_json_to_file(json_str, file_path):
@@ -137,7 +128,7 @@ class SourceFileIndexManager:
         absolute_file_path = os.path.join(self.project_dir, file)
         md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
 
-        classes = json.dumps(llm_output_json['classes'])
+        classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
 
         # TODO: Make sure to get attributes from llm output json
         return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
@@ -175,7 +166,7 @@ class SourceFileIndexManager:
         if index is None:
             print("Index does not exist.")
         else:
-            print_json(index.json())
+            index.print()
     
     def get_all_indexes(self):
         return self.db_util.select_all_rows()
