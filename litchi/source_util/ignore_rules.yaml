@@ -1,9 +1,11 @@
-
 directories:
   - node_modules
   - __pycache__
   - dist
   - build
+  - benchmark
+  - bench
+  - dockerfiles
 directory_prefix:
   - test
   - Test
@@ -17,6 +19,8 @@ files:
   - __init__.py
   - requirements.txt
   - setup.py
+  - Dockerfile
+  - NOTICE
 file_prefix:
   - test
   - Test
@@ -37,6 +41,7 @@ file_posfix:
   - .md
   - .json
   - .yaml
+  - .toml
   - .gz
   - .zip
   - .tar.gz
@@ -60,4 +65,30 @@ file_posfix:
   - .apk
   - .ipa
   - .aab
-  - .aab
+  - .txt
+  - .template
+  - .md
+  - .png
+  - .jpg
+  - .jpeg
+  - .gif
+  - .bmp
+  - .tif
+  - .tiff
+  - .svg
+  - .webp
+  - .ico
+  - .pdf
+  - .doc
+  - .docx
+  - .xls
+  - .xlsx
+  - .ppt
+  - .pptx
+  - .csv
+  - .tsv
+  - .rst
+  - .tex
+  - .bib
+  - .bibtex
+  - .Dockerfile
