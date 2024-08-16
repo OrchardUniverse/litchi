@@ -122,14 +122,32 @@ class SourceFileIndexManager:
         #output_json_file = "llm_analyse_code_output.json"
         #save_json_to_file(json, output_json_file)
         
-        return json.loads(json_string), tokens
+        try:
+            output_json = json.loads(json_string)
+        except Exception as e:
+            print("Error: Fail to parse llm output as json, set output_json as empty")
+            output_json = {
+                "name": file_path,
+                "purpose": "Unknown",
+                "classes": [],
+                "functions": []
+            }
+            print(e)
+        return output_json, tokens
 
     def generate_source_file_index(self, file, llm_output_json, tokens) -> SourceCodeIndex:
         absolute_file_path = os.path.join(self.project_dir, file)
         md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
 
-        classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
-        functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
+        try:
+            classes = json.dumps(llm_output_json['classes'], ensure_ascii=False)
+        except Exception as e:
+            classes = "[]"
+
+        try:
+            functions = json.dumps(llm_output_json['functions'], ensure_ascii=False)
+        except Exception as e:
+            functions = "[]"
 
         # TODO: Make sure to get attributes from llm output json
         return SourceCodeIndex(file=file, lines=line_count, md5=md5_hash, 
@@ -258,7 +276,10 @@ class SourceFileIndexManager:
         max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
 
         files = self.get_related_files(user_query, max_file_count)
+        print(f"Get the related index file: {files}")
+
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
+
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
