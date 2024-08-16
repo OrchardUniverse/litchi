@@ -276,7 +276,10 @@ class SourceFileIndexManager:
         max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
 
         files = self.get_related_files(user_query, max_file_count)
+        print(f"Get the related index file: {files}")
+
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
+
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)

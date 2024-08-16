@@ -33,8 +33,8 @@ class LlmUtil:
         json_string = completion.choices[0].message.content
         tokens = completion.usage.total_tokens
 
-        print(f"LLM request:\n {user_prompt}")
-        print(f"LLM response:\n {completion}")
+        # print(f"LLM request:\n {user_prompt}")
+        # print(f"LLM response:\n {completion}")
 
         return json_string, tokens
 
@@ -56,8 +56,9 @@ class LlmUtil:
         json_string = completion.choices[0].message.content
         tokens = completion.usage.total_tokens
 
-        print(f"LLM request:\n {user_prompt}")
-        print(f"LLM response:\n {completion}")
+        # TODO: enable for debug log
+        # print(f"LLM request:\n {user_prompt}")
+        # print(f"LLM response:\n {completion}")
 
         return json_string, tokens
         

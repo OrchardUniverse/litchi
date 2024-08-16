@@ -49,8 +49,21 @@ def show_index(file_path, is_all):
         index_manager.print_index(file_path)
     else:
         indexes = index_manager.get_all_indexes()
+
+
+        def truncate(text):
+            max_length = 10
+            if len(text) > max_length:
+                return text[:max_length-3] + "..."  # Truncate and add ellipsis
+            return text
+
+        # Print the result in a table
+        table = PrettyTable()
+        table.field_names = ["File", "Lines", "Name", "Purpose"]
         for index in indexes:
-            index_manager.print_index(index.file)
+            table.add_row([index.file, index.lines, index.name, truncate(index.purpose)])
+        table.align = "l"
+        print(table)
 
 def show_index_diff(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
