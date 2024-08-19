@@ -37,7 +37,8 @@ def save_json_to_file(json_str, file_path):
         
         # Write the dictionary to a JSON file
         with open(file_path, 'w') as json_file:
-            json.dump(data, json_file, indent=4)
+            json.dump(data, json_file, indent=4, ensure_ascii=False)
+            
         
         print(f"JSON data has been successfully saved to {file_path}")
     
@@ -74,7 +75,7 @@ def compute_md5_and_count_lines(filename):
 
 def dict_to_json_file(data, filename):
     with open(filename, 'w') as json_file:
-        json.dump(data, json_file, indent=4)
+        json.dump(data, json_file, indent=4, ensure_ascii=False)
 
 def read_file_content(file_path):
     """
@@ -119,9 +120,6 @@ class SourceFileIndexManager:
         llm_output_json, tokens = self.llm_util.chat_with_llm(prompt)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
-
-        #output_json_file = "llm_analyse_code_output.json"
-        #save_json_to_file(json, output_json_file)
         
         try:
             output_json = json.loads(json_string)
@@ -316,7 +314,7 @@ class SourceFileIndexManager:
         index_file_path = self.generate_source_file_index_name(index.file)
         try:        
             with open(index_file_path, 'w') as file:
-                file.write(index.json(indent=4))
+                file.write(index.to_printable_json())
                 print(f"Content successfully written to {index_file_path}")
         except IOError as e:
             print(f"An error occurred while writing to the file: {e}")
