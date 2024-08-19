@@ -10,12 +10,11 @@ class LlmUtil:
 
         self.base_url = config_manager.litchi_config.LLM.BaseUrl
         self.api_key = config_manager.litchi_config.LLM.ApiKey
+        self.timeout = config_manager.litchi_config.LLM.Timeout
         self.index_model = config_manager.litchi_config.Index.Model
         self.query_model = config_manager.litchi_config.Query.Model
 
     def chat_with_llm(self, user_prompt):
-        timeout_seconds = 600
-
         client = OpenAI(
             base_url=self.base_url,
             api_key=self.api_key
@@ -29,7 +28,7 @@ class LlmUtil:
                 {"role": "user", "content": user_prompt}
             ],
             response_format={"type": "json_object"},
-            timeout=timeout_seconds
+            timeout=self.timeout
         )
 
         json_string = completion.choices[0].message.content
@@ -41,8 +40,6 @@ class LlmUtil:
         return json_string, tokens
 
     def adhoc_chat_with_llm(self, user_prompt):
-        timeout_seconds = 600
-
         client = OpenAI(
             base_url=self.base_url,
             api_key=self.api_key
@@ -55,7 +52,7 @@ class LlmUtil:
                 #  Please always response in Chinese.
                 {"role": "user", "content": user_prompt}
             ],
-            timeout=timeout_seconds
+            timeout=self.timeout
         )
 
         json_string = completion.choices[0].message.content

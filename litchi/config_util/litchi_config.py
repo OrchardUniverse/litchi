@@ -13,6 +13,7 @@ class OS(BaseModel):
 class LLM(BaseModel):
     BaseUrl: str
     ApiKey: str
+    Timeout: float
 
 class Index(BaseModel):
     Lanauage: str
@@ -58,7 +59,8 @@ def create_default_litchi_config(language: str = "English") -> LitchiConfig:
 
     llm_data = {
         "BaseUrl": "https://api.openai.com",
-        "ApiKey": "your-api-key"
+        "ApiKey": "your-api-key",
+        "Timeout": 10.0
     }
     index_data = {
         "Lanauage": language,
