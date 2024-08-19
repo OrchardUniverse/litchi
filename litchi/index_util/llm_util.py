@@ -14,6 +14,7 @@ class LlmUtil:
         self.query_model = config_manager.litchi_config.Query.Model
 
     def chat_with_llm(self, user_prompt):
+        timeout_seconds = 600
 
         client = OpenAI(
             base_url=self.base_url,
@@ -27,7 +28,8 @@ class LlmUtil:
                 {"role": "system", "content": "As a professional programming expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
+            timeout=timeout_seconds
         )
 
         json_string = completion.choices[0].message.content
@@ -39,6 +41,8 @@ class LlmUtil:
         return json_string, tokens
 
     def adhoc_chat_with_llm(self, user_prompt):
+        timeout_seconds = 600
+
         client = OpenAI(
             base_url=self.base_url,
             api_key=self.api_key
@@ -50,7 +54,8 @@ class LlmUtil:
                 {"role": "system", "content": "You are a helpful assitant. You are good at programming and understand the given source code. Your goal is to understand user's query and provide reasonable and understandable response."},
                 #  Please always response in Chinese.
                 {"role": "user", "content": user_prompt}
-            ]
+            ],
+            timeout=timeout_seconds
         )
 
         json_string = completion.choices[0].message.content

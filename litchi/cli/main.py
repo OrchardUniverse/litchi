@@ -86,9 +86,10 @@ def index_delete(file_path, all):
 
 @index.command("query")
 @click.argument("query")
-def index_query(query):
+@click.option("--output-file", required=False, help="Output the related file list in file.")
+def index_query(query, output_file):
     """Query to get the related indexes."""
-    index_command.query_indexes(query)
+    index_command.query_indexes(query, output_file)
 
 
 @index.command("copy-to-source")
@@ -113,9 +114,10 @@ def gen(query, diff, without_index):
 @click.command("chat")
 @click.argument("query")
 @click.option("--without-index", is_flag=True, help="Generate code without updating index")
-def chat(query, without_index):
+@click.option("--index-file", required=False, help="Use the files as indexes from local file.")
+def chat(query, without_index, index_file):
     """Ask questions or chat to the source codes with indexes."""
-    chat_command.chat(query, without_index)
+    chat_command.chat(query, without_index, index_file)
 
 @click.command("execute")
 @click.argument("query")

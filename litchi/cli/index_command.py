@@ -1,4 +1,5 @@
 from prettytable import PrettyTable
+import os
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
@@ -115,8 +116,15 @@ def delete_index(file_path, is_all):
         for index in indexes:
             index_manager.delete_index(index.file)
 
-def query_indexes(user_query):
+def query_indexes(user_query, output_file: str =""):
     LitchiConfigManager.make_sure_in_project_path()
+
+    # Check if file is valid
+    if output_file and output_file != "":
+        output_directory = os.path.dirname(output_file)
+        if not os.path.exists(output_directory):
+            print(f"Error: The directory {output_directory} does not exist.")
+            return
 
     config_manager = LitchiConfigManager()
     max_retrival_size = config_manager.litchi_config.Index.MaxRetrivalSize
@@ -133,6 +141,12 @@ def query_indexes(user_query):
         table.add_row([file_reason_map['file'], file_reason_map['reason']])
 
     print(table)
+
+    if output_file and output_file != "":
+        with open(output_file, 'w') as file:
+            for file_reason_map in file_reason_list:
+                file.write(file_reason_map["file"] + '\n')
+        print(f"Successfully saved {len(file_reason_list)} file names into {output_file}")
 
 
 def copy_indexes_to_source_code():

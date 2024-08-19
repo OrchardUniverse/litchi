@@ -4,6 +4,7 @@ import json
 import sqlite3
 
 import hashlib
+from typing import List
 
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
@@ -272,19 +273,30 @@ class SourceFileIndexManager:
 
         return json.loads(json_string)["related_files"]
 
-    def chat_with_related_files(self, user_query):
-        max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
+    def chat_with_index_file(self, user_query, index_file):
+        with open(index_file, 'r') as file:
+            lines = file.readlines()
+            # Strip the newline characters from each line
+            files = [line.strip() for line in lines]
 
-        files = self.get_related_files(user_query, max_file_count)
-        print(f"Get the related index file: {files}")
+        return self.chat_with_index_file_list(user_query, files)
 
-        file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in files]
+    def chat_with_index_file_list(self, user_query, index_file_list: List[str]):
+        file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in index_file_list]
 
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
         return llm_output
 
+    def chat_with_searched_related_files(self, user_query):
+        max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
+
+        files = self.get_related_files(user_query, max_file_count)
+        print(f"Get the related index file: {files}")
+
+        return self.chat_with_index_file_list(user_query, files)
+    
     def chat_with_model(self, user_query):
         prompt = self.prompt_util.chat_with_model(user_query)
 
