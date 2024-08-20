@@ -284,7 +284,7 @@ class SourceFileIndexManager:
 
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
 
-        llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
+        llm_output, tokens = self.llm_util.chat_with_llm(prompt)
         return llm_output
 
     def chat_with_searched_related_files(self, user_query):
@@ -300,6 +300,11 @@ class SourceFileIndexManager:
 
         llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
         return llm_output
+    
+    def stream_chat(self, prompt):
+        prompt = self.prompt_util.append_output_language_prompt(prompt, self.config_manager.litchi_config.Query.Lanauage)
+        self.llm_util.stream_call_llm(prompt)
+        
     
     def generate_source_file_index_name(self, source_file_path: str) -> str:
     

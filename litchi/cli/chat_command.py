@@ -4,7 +4,7 @@ from ..config_util.litchi_config import LitchiConfigManager
 from ..index_util.index_manager import SourceFileIndexManager
 
 
-def chat(user_query, without_index: bool = False, index_file: str = ""):
+def chat(user_query, without_index: bool = False, index_file: str = "", file: str = ""):
     LitchiConfigManager.make_sure_in_project_path()
 
     if user_query == None or user_query == "":
@@ -28,4 +28,4 @@ def chat_with_index_file(user_query, index_file):
 
 def chat_without_indexes(user_query):
     index_manager = SourceFileIndexManager()
-    print(index_manager.chat_with_model(user_query))
+    index_manager.stream_chat(user_query)

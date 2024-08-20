@@ -64,3 +64,22 @@ class LlmUtil:
 
         return json_string, tokens
         
+
+    def stream_call_llm(self, prompt):
+        client = OpenAI(
+            base_url=self.base_url,
+            api_key=self.api_key
+        )
+
+        stream = client.chat.completions.create(
+            model=self.query_model,
+            messages=[{"role": "user", "content": prompt}],
+            stream=True,
+            timeout=self.timeout
+        )
+
+        for chunk in stream:
+            # Print result in stdout
+            print(chunk.choices[0].delta.content or "", end="")
+        
+        return
