@@ -21,6 +21,7 @@ files:
   - setup.py
   - Dockerfile
   - NOTICE
+  - Makefile
 file_prefix:
   - test
   - Test
@@ -41,6 +42,7 @@ file_posfix:
   - .md
   - .json
   - .yaml
+  - .yml
   - .toml
   - .gz
   - .zip
@@ -92,3 +94,5 @@ file_posfix:
   - .bib
   - .bibtex
   - .Dockerfile
+  - .sum
+  - .ipynb

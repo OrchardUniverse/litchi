@@ -16,14 +16,16 @@ class LLM(BaseModel):
     Timeout: float
 
 class Index(BaseModel):
-    Lanauage: str
+    Language: str
     Model: str
     MaxRetrivalSize: int
     RetrivalMethod: str
 
 class Query(BaseModel):
-    Lanauage: str
+    Language: str
     Model: str
+    ProgrammingLanguage: str
+
 
 class LitchiConfig(BaseModel):
     OS: OS
@@ -58,19 +60,20 @@ def create_default_litchi_config(language: str = "English") -> LitchiConfig:
     os_data = get_os_info()
 
     llm_data = {
-        "BaseUrl": "https://api.openai.com",
-        "ApiKey": "your-api-key",
+        "BaseUrl": "https://api.gptsapi.net/v1",
+        "ApiKey": "sk-xxx",
         "Timeout": 10.0
     }
     index_data = {
-        "Lanauage": language,
-        "Model": "gpt-3.5-turbo-1106",
+        "Language": language,
+        "Model": "gpt-4-1106-preview",
         "MaxRetrivalSize": 3,
         "RetrivalMethod": "LLM"
     }
     query_data = {
-        "Lanauage": language,
-        "Model": "gpt-3.5-turbo-1106"
+        "Language": language,
+        "Model": "gpt-4-1106-preview",
+        "ProgrammingLanguage": "Python"
     }
     return create_litchi_config(os_data, llm_data, index_data, query_data)
 
@@ -113,7 +116,7 @@ class LitchiConfigManager:
 
 
     def print_config(self):
-        print(self.litchi_config.json(indent=4))
+        print(self.litchi_config.model_dump_json(indent=4))
 
     @staticmethod
     def is_in_project_path() -> bool:

@@ -19,6 +19,15 @@ Unlike other programming assistants, `litchi` supports global indexing across al
 * Compatible with all large language models like ChatGPT and others.
 * Compatible with public and private MaaS which can be deployed in local.
 
+## Use Cases
+
+* Normal chat: chat with LLM without indexes which is useful for general purposes.
+* Chat with file: use LLM to read and understand a local file.
+* Chat with files: collect file names in index file and chat with all files.
+* Generate code which is based on user's adhoc requirement.
+* Generate code which is based on user's requirement and related source file.
+* 
+
 ## Install
 
 Install the `litchi` command as a standard Python package.

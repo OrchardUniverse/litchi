@@ -14,7 +14,7 @@ class SourceCodeIndex(BaseModel):
     functions: str
     tokens: int
     
-    def print(self) -> None:
+    def to_printable_json(self) -> str:
         parsed_json = json.loads(self.json())
 
         # Convert classes string to json array
@@ -23,7 +23,13 @@ class SourceCodeIndex(BaseModel):
 
         # Print non-ASCII string instead unicode for multiple languages
         pretty_json = json.dumps(parsed_json, ensure_ascii=False, indent=2)
-        print(pretty_json)
+        return pretty_json
+
+    def print(self) -> None:
+        print(self.to_printable_json())
+
+
+
 
 
 # Define the SqliteUtil class
