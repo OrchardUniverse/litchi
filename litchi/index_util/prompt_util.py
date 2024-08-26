@@ -1,14 +1,15 @@
 import os
 from jinja2 import Template
+from pydantic import BaseModel
 
 from ..config_util.litchi_config import LitchiConfigManager
 
 class PromptUtil:
 
     def __init__(self, project_path: str = "./") -> None:
-        config_manager = LitchiConfigManager(project_path)
-        self.index_language = config_manager.litchi_config.Index.Language
-        self.query_language = config_manager.litchi_config.Query.Language
+        self.config_manager = LitchiConfigManager(project_path)
+        self.index_language = self.config_manager.litchi_config.Index.Language
+        self.query_language = self.config_manager.litchi_config.Query.Language
         
     def append_output_language_prompt(self, prompt, language):
         return f"{prompt}\n\nMake sure all the output contents are in {language}."
@@ -72,3 +73,31 @@ class PromptUtil:
         }
         prompt = template.render(params)
         return self.append_output_language_prompt(prompt, self.query_language)
+    
+    def geneate_gencode_system_message(self, output_object: BaseModel, reference_filename=''):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        prompt_file = os.path.join(script_dir, "gencode.prompt")
+
+        os_info = self.config_manager.litchi_config.OS
+        if reference_filename == "":
+            reference_code = ""
+        else:
+            with open(reference_filename, 'r') as file:
+                reference_code = file.read()
+        programming_language = self.config_manager.litchi_config.Query.ProgrammingLanguage
+
+        params = {
+            'operator_system_type': os_info.Type,
+            'operator_system_version': os_info.Version,
+            'operator_system_arch': os_info.Arch, 
+            'reference_filename': reference_filename,
+            'reference_code': reference_code,
+            'programming_language': programming_language,
+            'output_json': output_object.model_json_schema()
+        }
+    
+        with open(prompt_file, 'r') as file:
+            template_content = file.read()
+            template = Template(template_content)
+            return template.render(params)
+            

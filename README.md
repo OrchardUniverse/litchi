@@ -23,7 +23,10 @@ Unlike other programming assistants, `litchi` supports global indexing across al
 
 * Normal chat: chat with LLM without indexes which is useful for general purposes.
 * Chat with file: use LLM to read and understand a local file.
-* Chat with files:
+* Chat with files: collect file names in index file and chat with all files.
+* Generate code which is based on user's adhoc requirement.
+* Generate code which is based on user's requirement and related source file.
+* 
 
 ## Install
 

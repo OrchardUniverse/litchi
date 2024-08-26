@@ -105,11 +105,10 @@ def index_deletefromsource():
 
 @click.command("gencode")
 @click.argument("query")
-@click.option("--diff", is_flag=True, help="Show diff with existing code")
-@click.option("--without-index", is_flag=True, help="Generate code without updating index")
-def gen(query, diff, without_index):
+@click.option("--file", required=False, default="", help="Generate the code which is based on the file")
+def gencode(query, file):
     """Generate the source code based on user's query and indexes."""
-    gencode_command.generate_file(query)
+    gencode_command.generate_source_file(query, file)
 
 
 @click.command("chat")
@@ -146,7 +145,7 @@ cli.add_command(init)
 cli.add_command(console)
 cli.add_command(source)
 cli.add_command(index)
-cli.add_command(gen)
+cli.add_command(gencode)
 cli.add_command(chat)
 cli.add_command(execute)
 cli.add_command(watch)
