@@ -7,8 +7,8 @@ class PromptUtil:
 
     def __init__(self, project_path: str = "./") -> None:
         config_manager = LitchiConfigManager(project_path)
-        self.index_language = config_manager.litchi_config.Index.Lanauage
-        self.query_language = config_manager.litchi_config.Query.Lanauage
+        self.index_language = config_manager.litchi_config.Index.Language
+        self.query_language = config_manager.litchi_config.Query.Language
         
     def append_output_language_prompt(self, prompt, language):
         return f"{prompt}\n\nMake sure all the output contents are in {language}."

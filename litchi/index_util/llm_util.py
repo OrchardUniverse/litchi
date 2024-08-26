@@ -14,62 +14,57 @@ class LlmUtil:
         self.index_model = config_manager.litchi_config.Index.Model
         self.query_model = config_manager.litchi_config.Query.Model
 
-    def chat_with_llm(self, user_prompt):
+    def create_openai_client(self):
         client = OpenAI(
             base_url=self.base_url,
             api_key=self.api_key
         )
+        return client
+    
+    def call_llm(self, prompt, is_json_mode: bool = False):
+        client = self.create_openai_client()
 
-        completion = client.chat.completions.create(
-            #model="gpt-4-1106-preview",
-            model=self.index_model,
-            messages=[
-                {"role": "system", "content": "As a professional programming expert, analyze the given source code file. Your goal is to thoroughly understand the content and purpose of the code. Your response should be in JSON format."},
-                {"role": "user", "content": user_prompt}
-            ],
-            response_format={"type": "json_object"},
-            timeout=self.timeout
-        )
+        json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
+        if is_json_mode:
+            if self.index_model in json_mode_supported_models:
+                completion = client.chat.completions.create(
+                    model=self.index_model,
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ],
+                    response_format={"type": "json_object"},
+                    timeout=self.timeout
+                )
+            else:
+                print(f"Warning, you should use json mode supported models in {json_mode_supported_models}")
+                completion = client.chat.completions.create(
+                model=self.index_model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                timeout=self.timeout
+            )
+        else:
+            completion = client.chat.completions.create(
+                model=self.index_model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                timeout=self.timeout
+            )
 
-        json_string = completion.choices[0].message.content
+        output_string = completion.choices[0].message.content
         tokens = completion.usage.total_tokens
 
+        # TODO: add debug log
         # print(f"LLM request:\n {user_prompt}")
         # print(f"LLM response:\n {completion}")
 
-        return json_string, tokens
+        return output_string, tokens
 
-    def adhoc_chat_with_llm(self, user_prompt):
-        client = OpenAI(
-            base_url=self.base_url,
-            api_key=self.api_key
-        )
 
-        completion = client.chat.completions.create(
-            model=self.query_model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assitant. You are good at programming and understand the given source code. Your goal is to understand user's query and provide reasonable and understandable response."},
-                #  Please always response in Chinese.
-                {"role": "user", "content": user_prompt}
-            ],
-            timeout=self.timeout
-        )
-
-        json_string = completion.choices[0].message.content
-        tokens = completion.usage.total_tokens
-
-        # TODO: enable for debug log
-        # print(f"LLM request:\n {user_prompt}")
-        # print(f"LLM response:\n {completion}")
-
-        return json_string, tokens
-        
-
-    def stream_call_llm(self, prompt):
-        client = OpenAI(
-            base_url=self.base_url,
-            api_key=self.api_key
-        )
+    def stream_call_llm(self, prompt) -> None:
+        client = self.create_openai_client()
 
         stream = client.chat.completions.create(
             model=self.query_model,

@@ -13,6 +13,8 @@ def chat(user_query, without_index: bool = False, index_file: str = "", file: st
 
     if without_index:
         chat_without_indexes(user_query)
+    elif file:
+        chat_with_single_file(user_query, file)
     elif index_file != "":
         chat_with_index_file(user_query, index_file)
     else:
@@ -24,7 +26,11 @@ def chat_with_indexes(user_query):
 
 def chat_with_index_file(user_query, index_file):
     index_manager = SourceFileIndexManager()
-    print(index_manager.chat_with_index_file(user_query, index_file))
+    index_manager.chat_with_index_file(user_query, index_file)
+
+def chat_with_single_file(user_query, index_file):
+    index_manager = SourceFileIndexManager()
+    index_manager.chat_with_file(user_query, index_file)
 
 def chat_without_indexes(user_query):
     index_manager = SourceFileIndexManager()

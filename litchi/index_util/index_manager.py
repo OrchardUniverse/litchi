@@ -117,7 +117,7 @@ class SourceFileIndexManager:
         code = read_file(file_path)
         prompt = self.prompt_util.analyse_source_file_prompt(programming_language, code)
         
-        llm_output_json, tokens = self.llm_util.chat_with_llm(prompt)
+        llm_output_json, tokens = self.llm_util.call_llm(prompt, True)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
         
@@ -263,7 +263,7 @@ class SourceFileIndexManager:
         
         prompt = self.prompt_util.get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
         
-        llm_output_json, tokens = self.llm_util.chat_with_llm(prompt)
+        llm_output_json, tokens = self.llm_util.call_llm(prompt, True)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
@@ -283,9 +283,8 @@ class SourceFileIndexManager:
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in index_file_list]
 
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
+        self.llm_util.stream_call_llm(prompt)
 
-        llm_output, tokens = self.llm_util.chat_with_llm(prompt)
-        return llm_output
 
     def chat_with_searched_related_files(self, user_query):
         max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
@@ -295,14 +294,8 @@ class SourceFileIndexManager:
 
         return self.chat_with_index_file_list(user_query, files)
     
-    def chat_with_model(self, user_query):
-        prompt = self.prompt_util.chat_with_model(user_query)
-
-        llm_output, tokens = self.llm_util.adhoc_chat_with_llm(prompt)
-        return llm_output
-    
     def stream_chat(self, prompt):
-        prompt = self.prompt_util.append_output_language_prompt(prompt, self.config_manager.litchi_config.Query.Lanauage)
+        prompt = self.prompt_util.append_output_language_prompt(prompt, self.config_manager.litchi_config.Query.Language)
         self.llm_util.stream_call_llm(prompt)
         
     

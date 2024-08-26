@@ -4,6 +4,7 @@ from . import init_command
 from . import source_command
 from . import index_command
 from . import chat_command
+from . import gencode_command
 
 
 @click.group()
@@ -102,22 +103,23 @@ def index_deletefromsource():
     """Delete the index content from source file's directory."""
     index_command.delete_indexes_from_source_code()
 
-@click.command("gen")
+@click.command("gencode")
 @click.argument("query")
 @click.option("--diff", is_flag=True, help="Show diff with existing code")
 @click.option("--without-index", is_flag=True, help="Generate code without updating index")
 def gen(query, diff, without_index):
     """Generate the source code based on user's query and indexes."""
-    pass
+    gencode_command.generate_file(query)
 
 
 @click.command("chat")
 @click.argument("query")
 @click.option("--without-index", is_flag=True, help="Generate code without updating index")
 @click.option("--index-file", required=False, help="Use the files as indexes from local file.")
-def chat(query, without_index, index_file):
+@click.option("--file", required=False, help="Use the files as indexes from local file.")
+def chat(query, without_index, index_file, file):
     """Ask questions or chat to the source codes with indexes."""
-    chat_command.chat(query, without_index, index_file)
+    chat_command.chat(query, without_index, index_file, file)
 
 @click.command("execute")
 @click.argument("query")
