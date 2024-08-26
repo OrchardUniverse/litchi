@@ -24,9 +24,14 @@ Unlike other programming assistants, `litchi` supports global indexing across al
 * Normal chat: chat with LLM without indexes which is useful for general purposes.
 * Chat with file: use LLM to read and understand a local file.
 * Chat with files: collect file names in index file and chat with all files.
-* Generate code which is based on user's adhoc requirement.
-* Generate code which is based on user's requirement and related source file.
-* 
+* Generate code for user's query:
+  * Quickly generate python script like port detecting to execute.
+* Generate code for user's query and source files:
+  * Rewrite the source code in different programming languages.
+  * Generate unit test cases for the source code.
+* Run commands: generate the script and execute immediately
+
+  
 
 ## Install
 

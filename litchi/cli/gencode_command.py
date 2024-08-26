@@ -6,8 +6,14 @@ from ..config_util.litchi_config import LitchiConfigManager
 from ..index_util.index_manager import SourceFileIndexManager
 from ..index_util.llm_util import LlmUtil
 
-def generate_source_file(query, file: str = ""):
+def generate_source_file(query_or_file, file: str = "", should_run: bool = False):
     LitchiConfigManager.make_sure_in_project_path()
+
+    if query_or_file.lower().endswith(".txt"):
+        query = open(query_or_file, "r").read()
+        print(f"Read the requiremtn file in {query_or_file} to get actual querty:\n{query}")
+    else:
+        query = query_or_file
 
     llm_util = LlmUtil()
     gencode_output = llm_util.call_llm_to_gencode(query, file)
@@ -18,6 +24,23 @@ def generate_source_file(query, file: str = ""):
             print(f"Generate code and write to {gencode_output.output_file}")
     except Exception as e:
         print(f"An error occurred while writing to the file: {e}")
+
+    if should_run:
+        run_generated_file(gencode_output.output_file)
+
+
+def run_generated_file(filename: str):
+    
+    if filename.lower().endswith(".sh"):
+        command = f"bash {filename}"
+    elif filename.lower().endswith(".py"):
+        command = f"python {filename}"
+    else:
+        print("Error: only support for python and bash script")
+        return
+
+    print(f"Try to run generated file with command: {command}")
+    os.system(command)
 
 
 def generate_ut():

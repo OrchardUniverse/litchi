@@ -6,13 +6,16 @@ directories:
   - benchmark
   - bench
   - dockerfiles
+  - benchmark
 directory_prefix:
   - test
   - Test
+  - benchmark
 directory_posfix:
   - Test
   - test
   - .egg-info
+  - benchmark
 files:
   - README.md
   - LICENSE
@@ -25,9 +28,11 @@ files:
 file_prefix:
   - test
   - Test
+  - benchmark
 file_posfix:
   - Test
   - test
+  - benchmark
   - .pyc
   - .pyo
   - .swp

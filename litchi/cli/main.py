@@ -104,21 +104,22 @@ def index_deletefromsource():
     index_command.delete_indexes_from_source_code()
 
 @click.command("gencode")
-@click.argument("query")
+@click.argument("query_or_file")
 @click.option("--file", required=False, default="", help="Generate the code which is based on the file")
-def gencode(query, file):
+@click.option("--run", is_flag=True, default=False, help="If run the generated code or not")
+def gencode(query_or_file, file, run):
     """Generate the source code based on user's query and indexes."""
-    gencode_command.generate_source_file(query, file)
+    gencode_command.generate_source_file(query_or_file, file, run)
 
 
 @click.command("chat")
 @click.argument("query")
 @click.option("--without-index", is_flag=True, help="Generate code without updating index")
-@click.option("--index-file", required=False, help="Use the files as indexes from local file.")
-@click.option("--file", required=False, help="Use the files as indexes from local file.")
-def chat(query, without_index, index_file, file):
+@click.option("--files", required=False, help="Use the files in index file to chat.")
+@click.option("--file", required=False, help="Use the file to chat with.")
+def chat(query, without_index, files, file):
     """Ask questions or chat to the source codes with indexes."""
-    chat_command.chat(query, without_index, index_file, file)
+    chat_command.chat(query, without_index, files, file)
 
 @click.command("execute")
 @click.argument("query")

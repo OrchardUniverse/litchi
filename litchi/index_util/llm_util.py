@@ -65,13 +65,15 @@ class LlmUtil:
 
 
         # TODO: add debug log
-        print(f"LLM system message:\n {system_message}")
-        print(f"LLM response:\n {llm_output_string}")
+        #print(f"LLM system message:\n {system_message}")
+        #print(f"LLM response:\n {llm_output_string}")
 
         try:
             output_object = GencodeOutput.model_validate_json(remove_first_last_lines_if_quoted(llm_output_string))
         except:
             print("Error: failed to parse the response to GencodeOutput.")
+            print(f"LLM system message:\n {system_message}")
+            print(f"LLM response:\n {llm_output_string}")
 
         return output_object
     
