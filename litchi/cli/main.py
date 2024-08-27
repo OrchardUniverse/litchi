@@ -5,7 +5,7 @@ from . import source_command
 from . import index_command
 from . import chat_command
 from . import gencode_command
-
+from . import watch_command
 
 @click.group()
 def cli():
@@ -103,11 +103,11 @@ def index_deletefromsource():
     """Delete the index content from source file's directory."""
     index_command.delete_indexes_from_source_code()
 
-@click.command("gencode")
+@click.command("gen")
 @click.argument("query_or_file")
 @click.option("--file", required=False, default="", help="Generate the code which is based on the file")
 @click.option("--run", is_flag=True, default=False, help="If run the generated code or not")
-def gencode(query_or_file, file, run):
+def gen(query_or_file, file, run):
     """Generate the source code based on user's query and indexes."""
     gencode_command.generate_source_file(query_or_file, file, run)
 
@@ -135,10 +135,10 @@ def console():
 
 
 @click.command("watch")
-@click.argument("requirement_file")
-def watch(requirement_file):
+@click.argument("file", required=True)
+def watch(file):
     """Watch the requirement file for changes and auto-generate code."""
-    print("The method is not supported yet")
+    watch_command.watch_file(file)
 
 
 # Adding commands to the main CLI group
@@ -146,7 +146,7 @@ cli.add_command(init)
 cli.add_command(console)
 cli.add_command(source)
 cli.add_command(index)
-cli.add_command(gencode)
+cli.add_command(gen)
 cli.add_command(chat)
 cli.add_command(execute)
 cli.add_command(watch)

@@ -1,0 +1,5 @@
+READY
+
+generate the fastapi server.
+
+change readme into chinese.
