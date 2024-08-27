@@ -6,7 +6,7 @@ from ..config_util.litchi_config import LitchiConfigManager
 from ..index_util.index_manager import SourceFileIndexManager
 from ..index_util.llm_util import LlmUtil
 
-def generate_source_file(query_or_file, file: str = "", should_run: bool = False):
+def generate_source_file(query_or_file, file: str = "", should_run: bool = False, language: str = ""):
     LitchiConfigManager.make_sure_in_project_path()
 
     if query_or_file.lower().endswith(".txt"):
@@ -16,7 +16,7 @@ def generate_source_file(query_or_file, file: str = "", should_run: bool = False
         query = query_or_file
 
     llm_util = LlmUtil()
-    gencode_output = llm_util.call_llm_to_gencode(query, file)
+    gencode_output = llm_util.call_llm_to_gencode(query, file, language)
 
     try:
         with open(gencode_output.output_file, 'w') as file:

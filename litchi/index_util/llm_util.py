@@ -38,7 +38,7 @@ class LlmUtil:
     
 
 
-    def call_llm_to_gencode(self, prompt, reference_file=""):
+    def call_llm_to_gencode(self, prompt, reference_file="", language=""):
         client = self.create_openai_client()
 
         json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
@@ -48,7 +48,7 @@ class LlmUtil:
             response_format = None
 
         output_object = GencodeOutput(output_file="", code="")
-        system_message = self.prompt_util.geneate_gencode_system_message(output_object, reference_file)
+        system_message = self.prompt_util.geneate_gencode_system_message(output_object, reference_file, language)
 
         completion = client.chat.completions.create(
             model=self.index_model,

@@ -4,7 +4,8 @@ from . import init_command
 from . import source_command
 from . import index_command
 from . import chat_command
-from . import gencode_command
+from . import gen_command
+from . import opt_command
 from . import watch_command
 
 @click.group()
@@ -51,7 +52,7 @@ def index():
 
 @index.command("create")
 @click.argument("file_path", required=False)
-@click.option("--all", is_flag=True, help="Create index for all files")
+@click.option("--all", is_flag=True, help="Create index for all files.")
 def index_create(file_path, all):
     """Create index for a specified file or all files."""
     index_command.create_index(file_path, all)
@@ -59,14 +60,14 @@ def index_create(file_path, all):
 
 @index.command("show")
 @click.argument("file_path", required=False)
-@click.option("--all", is_flag=True, help="Show index for all files")
+@click.option("--all", is_flag=True, help="Show index for all files.")
 def index_show(file_path, all):
     """Show index for a specified file or all files."""
     index_command.show_index(file_path, all)
 
 @index.command("diff")
 @click.argument("file_path", required=False)
-@click.option("--all", is_flag=True, help="Update index for all files")
+@click.option("--all", is_flag=True, help="Update index for all files.")
 def index_diff(file_path, all):
     """Show diff of index for a specified file or all files."""
     index_command.show_index_diff(file_path, all)
@@ -105,33 +106,30 @@ def index_deletefromsource():
 
 @click.command("gen")
 @click.argument("query_or_file")
-@click.option("--file", required=False, default="", help="Generate the code which is based on the file")
-@click.option("--run", is_flag=True, default=False, help="If run the generated code or not")
-def gen(query_or_file, file, run):
+@click.option("--file", required=False, default="", help="Generate the code which is based on the file.")
+@click.option("--run", is_flag=True, default=False, help="If run the generated code or not.")
+@click.option("--language", required=False, default="", help="The programming language to generate.")
+def gen(query_or_file, file, run, language):
     """Generate the source code based on user's query and indexes."""
-    gencode_command.generate_source_file(query_or_file, file, run)
+    gen_command.generate_source_file(query_or_file, file, run, language)
 
+@click.command("opt")
+@click.argument("file")
+@click.argument("query")
+@click.option("--inplace", is_flag=True, default=False, help="If run the generated code or not.")
+@click.option("--diff", is_flag=True, default=False, help="If run the generated code or not.")
+def opt(file, query, inplace, diff):
+    """Generate the source code based on user's query and indexes."""
+    opt_command.optimize_code(file, query, inplace, diff)
 
 @click.command("chat")
 @click.argument("query")
-@click.option("--without-index", is_flag=True, help="Generate code without updating index")
+@click.option("--without-index", is_flag=True, help="Generate code without updating index.")
 @click.option("--files", required=False, help="Use the files in index file to chat.")
 @click.option("--file", required=False, help="Use the file to chat with.")
 def chat(query, without_index, files, file):
     """Ask questions or chat to the source codes with indexes."""
     chat_command.chat(query, without_index, files, file)
-
-@click.command("execute")
-@click.argument("query")
-@click.option("--dry-run", is_flag=True, help="Generate the code without executing")
-def execute(query):
-    """Generate and execute a script file from user's query."""
-    os.system(query)
-
-@click.command()
-def console():
-    """Use a user-friendly console interface for litchi."""
-    print("The method is not supported yet")
 
 
 @click.command("watch")
@@ -143,15 +141,15 @@ def watch(file):
 
 # Adding commands to the main CLI group
 cli.add_command(init)
-cli.add_command(console)
 cli.add_command(source)
 cli.add_command(index)
 cli.add_command(gen)
+cli.add_command(opt)
 cli.add_command(chat)
-cli.add_command(execute)
 cli.add_command(watch)
 
 # Adding sub-commands to the respective command groups
+source.add_command(source_create)
 source.add_command(source_update)
 
 index.add_command(index_create)
@@ -160,7 +158,6 @@ index.add_command(index_update)
 index.add_command(index_diff)
 index.add_command(index_delete)
 index.add_command(index_query)
-
 index.add_command(index_copytosource)
 index.add_command(index_deletefromsource)
 

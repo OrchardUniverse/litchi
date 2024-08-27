@@ -1,0 +1,1 @@
+生成一个Python脚本，可以监听一个本地文件是否被修改。如果文件不存在就创建文件，并且输入文本""Ready to generate? NOT READY!"，如果文件被修改了并且文件的第一行的内容是"Ready to generate? READY!"，就获取当前文件内容进行打印，然后修改文件的第一行为"Ready to generate? NOT READY!"，继续监听文件的修改。

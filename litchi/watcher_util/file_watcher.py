@@ -83,7 +83,7 @@ class FileWatcher:
                 break
 
     def generate_code(self, requirement_content) -> str:
-        gencode_output = self.llm_util.call_llm_to_gencode(requirement_content, "")
+        gencode_output = self.llm_util.call_llm_to_gencode(requirement_content, "", "")
 
         try:
             with open(gencode_output.output_file, 'w') as file:

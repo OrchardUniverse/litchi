@@ -74,7 +74,7 @@ class PromptUtil:
         prompt = template.render(params)
         return self.append_output_language_prompt(prompt, self.query_language)
     
-    def geneate_gencode_system_message(self, output_object: BaseModel, reference_filename=''):
+    def geneate_gencode_system_message(self, output_object: BaseModel, reference_filename="", language=""):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         prompt_file = os.path.join(script_dir, "gencode.prompt")
 
@@ -84,7 +84,10 @@ class PromptUtil:
         else:
             with open(reference_filename, 'r') as file:
                 reference_code = file.read()
-        programming_language = self.config_manager.litchi_config.Query.ProgrammingLanguage
+        if language == "":
+            programming_language = self.config_manager.litchi_config.Query.ProgrammingLanguage
+        else:
+            programming_language = language
 
         params = {
             'operator_system_type': os_info.Type,
