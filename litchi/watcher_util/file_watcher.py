@@ -1,15 +1,18 @@
 import time
 import os
 
+from ..index_util.llm_util import LlmUtil
 
 
 class FileWatcher:
-    def __init__(self, file) -> None:
+    def __init__(self, file, project_path: str = "./") -> None:
         self.monitor_file = file
 
         if not os.path.exists(self.monitor_file):
             print(f"Create the empty wath file since it doesn't exist: {self.monitor_file}")
             self.create_initial_file()
+
+        self.llm_util = LlmUtil(project_path)
 
         
     def create_initial_file(self):
@@ -28,27 +31,28 @@ class FileWatcher:
                     
                     # Remove the system hint 
                     requirement_content = ""
-
                     lines = file_contents.splitlines()[2:]
                     for i, line in enumerate(lines):
                         if line.startswith("===================="):
                             lines = lines[:i]
                             break
-
                     requirement_content = '\n'.join(lines)
 
                     print(f"Triggered and extract the user requirement: {requirement_content}")
 
 
                     # TODO: Call function to generate code
-
+                    output_string = self.generate_code(requirement_content)
 
 
                     # Move back to the beginning of the file and change the first line
                     file.seek(0)
                     file.write('Ready to generate? NOT READY!\n\n\n\n')
 
-                    file.write("==================== GENERATED ====================\n")
+                    file.write("==================== GENERATED ====================\n\n")
+
+                    file.write(output_string)
+                    file.write("\n\n")
 
                     file.flush()
                     os.fsync(file.fileno())
@@ -77,3 +81,15 @@ class FileWatcher:
             except FileNotFoundError:
                 print(f'File {self.monitor_file} not found. Please check the path.')
                 break
+
+    def generate_code(self, requirement_content) -> str:
+        gencode_output = self.llm_util.call_llm_to_gencode(requirement_content, "")
+
+        try:
+            with open(gencode_output.output_file, 'w') as file:
+                file.write(gencode_output.code)
+                output_message = f"Generate code and write to `{gencode_output.output_file}`:\n\n```\n{gencode_output.code}\n```"
+                print(output_message)
+                return output_message
+        except Exception as e:
+            print(f"An error occurred while writing to the file: {e}")
