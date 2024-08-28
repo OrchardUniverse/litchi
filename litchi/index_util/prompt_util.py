@@ -104,3 +104,15 @@ class PromptUtil:
             template = Template(template_content)
             return template.render(params)
             
+    def geneate_optcode_system_message(self, reference_code=""):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        prompt_file = os.path.join(script_dir, "optcode.prompt")
+
+        params = {
+            'reference_code': reference_code
+        }
+    
+        with open(prompt_file, 'r') as file:
+            template_content = file.read()
+            template = Template(template_content)
+            return template.render(params)

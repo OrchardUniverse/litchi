@@ -51,7 +51,7 @@ class LlmUtil:
         system_message = self.prompt_util.geneate_gencode_system_message(output_object, reference_file, language)
 
         completion = client.chat.completions.create(
-            model=self.index_model,
+            model=self.query_model,
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt}
@@ -76,7 +76,31 @@ class LlmUtil:
             print(f"LLM response:\n {llm_output_string}")
 
         return output_object
-    
+
+
+    def llm_optimize_code(self, file, prompt):
+        client = self.create_openai_client()
+
+        with open(file, 'r') as file:
+            reference_code = file.read()
+
+        system_message = self.prompt_util.geneate_optcode_system_message(reference_code)
+
+        completion = client.chat.completions.create(
+            model=self.query_model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            timeout=self.timeout
+        )
+
+        llm_output_string = completion.choices[0].message.content
+
+        #print(f"LLM system message:\n {system_message}")
+        #print(f"LLM response:\n {llm_output_string}")
+        return remove_first_last_lines_if_quoted(llm_output_string)
+
     def call_llm(self, prompt, is_json_mode: bool = False):
         client = self.create_openai_client()
 

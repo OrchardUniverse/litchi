@@ -1,4 +1,5 @@
 from prettytable import PrettyTable
+import tempfile
 import os
 
 from ..source_util.source_file_manager import SourceFileManager
@@ -7,7 +8,37 @@ from ..index_util.index_manager import SourceFileIndexManager
 from ..index_util.llm_util import LlmUtil
 
 def optimize_code(file, query, inplace, diff):
-    pass
+    LitchiConfigManager.make_sure_in_project_path()
+
+    llm_util = LlmUtil()
+    optimized_code = llm_util.llm_optimize_code(file, query)
+
+    print(optimized_code)
+    if inplace:
+        with open(file, 'w') as f:
+            f.write(optimized_code)
+        print(f"Optimized code and saved into {file}")
+    elif diff:
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
+            temp_file.write(optimized_code)
+            temp_file_name = temp_file.name
+            print(f"Optimized code and saved into {temp_file_name}")
+            
+        diff_commnd = f"git diff {file} {temp_file_name}"
+        print(f"Try to run diff command: {diff_commnd}")
+        os.system(diff_commnd)
+
+
+        response = input("Do you want to overwrite with diff file? (yes/no): ").strip().lower()
+        if response in ['yes', 'y']:
+            with open(file, 'w') as opened_file:
+                opened_file.write(optimized_code)
+            print(f"The file '{file}' has been overwritten with the optimized code.")
+        else:
+            print(f"Do not overwrite source file and you can find optmized code in {temp_file_name}.")
+
+
 
 def generate_source_file(query_or_file, file: str = "", should_run: bool = False, language: str = ""):
     LitchiConfigManager.make_sure_in_project_path()

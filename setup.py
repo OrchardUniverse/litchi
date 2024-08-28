@@ -1,10 +1,16 @@
 import os
 from setuptools import setup, find_packages
 
-def read_requirements(file_name):
+def read_requirements(file_name: str) -> list:
     with open(file_name, 'r') as file:
         return [line.strip() for line in file if line.strip() and not line.startswith('#')]
+
 here = os.path.abspath(os.path.dirname(__file__))
+
+# It's good practice to explicitly close the file, or use a context manager
+with open(os.path.join(here, 'README.md'), 'r') as readme_file:
+    long_description = readme_file.read()
+
 requirements = read_requirements(os.path.join(here, 'requirements.txt'))
 
 setup(
@@ -14,7 +20,7 @@ setup(
     install_requires=requirements,
     author="Orchard Universe",
     description="Litchi is yet another coding assistant powered by LLM.",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/OrchardUniverse/litchi",
     classifiers=[
