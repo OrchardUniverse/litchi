@@ -115,12 +115,12 @@ def gen(query_or_file, file, run, language):
 
 @click.command("opt")
 @click.argument("file")
-@click.argument("query")
-@click.option("--inplace", is_flag=True, default=False, help="If run the generated code or not.")
-@click.option("--diff", is_flag=True, default=False, help="If run the generated code or not.")
-def opt(file, query, inplace, diff):
+@click.argument("query_or_file")
+@click.option("--inplace", is_flag=True, default=False, help="If replace the origin source file or not.")
+@click.option("--dry-run", is_flag=True, default=False, help="If only generate the code without writing.")
+def opt(file, query_or_file, inplace, dry_run):
     """Generate the source code based on user's query and indexes."""
-    opt_command.optimize_code(file, query, inplace, diff)
+    opt_command.optimize_code(file, query_or_file, inplace, dry_run)
 
 @click.command("chat")
 @click.argument("query")

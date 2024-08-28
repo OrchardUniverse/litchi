@@ -31,6 +31,11 @@ Unlike other programming assistants, `litchi` supports global indexing across al
   * Generate unit test cases for the source code.
 * Run commands: generate the script and execute immediately
 * Write requirements instead of coding: Edit local requirement file and automatically generating code
+* Optimize code for user's query and source file:
+  * Add annotation for original source code.
+  * Format, refactor or optmize the source code with specified style.
+  * Inplace or ask permission to update the source code with optimized code.
+  * Implement the TODO functions in the source code.
 
   
 

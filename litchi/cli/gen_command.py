@@ -5,15 +5,12 @@ from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
 from ..index_util.index_manager import SourceFileIndexManager
 from ..index_util.llm_util import LlmUtil
+from .common_util import CommandCommonUtil
 
 def generate_source_file(query_or_file, file: str = "", should_run: bool = False, language: str = ""):
     LitchiConfigManager.make_sure_in_project_path()
 
-    if query_or_file.lower().endswith(".txt"):
-        query = open(query_or_file, "r").read()
-        print(f"Read the requiremtn file in {query_or_file} to get actual querty:\n{query}")
-    else:
-        query = query_or_file
+    query = CommandCommonUtil.extract_query(query_or_file)
 
     llm_util = LlmUtil()
     gencode_output = llm_util.call_llm_to_gencode(query, file, language)
