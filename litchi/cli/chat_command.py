@@ -28,9 +28,9 @@ def chat_with_index_file(query, index_file):
     index_manager = SourceFileIndexManager()
     index_manager.chat_with_index_file(query, index_file)
 
-def chat_with_single_file(query, index_file):
+def chat_with_single_file(query, file):
     index_manager = SourceFileIndexManager()
-    index_manager.chat_with_file(query, index_file)
+    index_manager.chat_with_file_list(query, [file])
 
 def chat_without_index(query):
     index_manager = SourceFileIndexManager()

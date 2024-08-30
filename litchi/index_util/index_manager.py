@@ -268,8 +268,12 @@ class SourceFileIndexManager:
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
         # TODO: Return the reason about files and query
+        try:
+            return json.loads(json_string)["related_files"]
+        except:
+            print(f"Fail to parse the json: {json_string}")
+            exit(-1)
 
-        return json.loads(json_string)["related_files"]
 
     def chat_with_index_file(self, user_query, index_file):
         with open(index_file, 'r') as file:
@@ -277,9 +281,9 @@ class SourceFileIndexManager:
             # Strip the newline characters from each line
             files = [line.strip() for line in lines]
 
-        return self.chat_with_index_file_list(user_query, files)
+        return self.chat_with_file_list(user_query, files)
 
-    def chat_with_index_file_list(self, user_query, index_file_list: List[str]):
+    def chat_with_file_list(self, user_query, index_file_list: List[str]):
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in index_file_list]
 
         prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
@@ -292,7 +296,7 @@ class SourceFileIndexManager:
         files = self.get_related_files(user_query, max_file_count)
         print(f"Get the related index file: {files}")
 
-        return self.chat_with_index_file_list(user_query, files)
+        return self.chat_with_file_list(user_query, files)
     
     def stream_chat(self, prompt):
         prompt = self.prompt_util.append_output_language_prompt(prompt, self.config_manager.litchi_config.Query.Language)
