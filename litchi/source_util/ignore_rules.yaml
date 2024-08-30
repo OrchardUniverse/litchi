@@ -103,3 +103,4 @@ file_posfix:
   - .Dockerfile
   - .sum
   - .ipynb
+  - .prompt

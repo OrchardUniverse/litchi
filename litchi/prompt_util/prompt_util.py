@@ -29,7 +29,7 @@ class PromptUtil:
         prompt = template.render(params)
         return self.append_output_language_prompt(prompt, self.index_language)
 
-    def get_related_source_files_prompt(self, query, source_file_indexes, max_file_count):
+    def get_related_source_files_prompt(self, source_file_indexes, max_file_count):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         prompt_file = os.path.join(script_dir, "get_related_source_files.prompt")
 
@@ -38,7 +38,6 @@ class PromptUtil:
 
         template = Template(template_content)
         params = {
-            'query': query,
             'source_file_indexes': source_file_indexes,
             'max_file_count': max_file_count
         }

@@ -3,7 +3,9 @@ from openai import OpenAI
 from pydantic import BaseModel, Field
 
 from ..config_util.litchi_config import LitchiConfigManager
-from . import prompt_util
+from ..prompt_util import prompt_util
+
+json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
 
 class GencodeOutput(BaseModel):
     output_file: str = Field(description="The output file name.")
@@ -41,7 +43,6 @@ class LlmUtil:
     def call_llm_to_gencode(self, prompt, reference_file="", language=""):
         client = self.create_openai_client()
 
-        json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
         if self.query_model in json_mode_supported_models:
             response_format = {"type": "json_object"}
         else:
@@ -101,10 +102,36 @@ class LlmUtil:
         #print(f"LLM response:\n {llm_output_string}")
         return remove_first_last_lines_if_quoted(llm_output_string)
 
+
+    def call_llm_with_system_prompt(self, model, system_message, prompt, is_json_mode: bool = False):
+        client = self.create_openai_client()
+
+        if is_json_mode and (model in json_mode_supported_models):
+            response_format={"type": "json_object"}
+        else:
+            response_format={},
+
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            response_format=response_format,
+            timeout=self.timeout
+        )
+
+        output_string = completion.choices[0].message.content
+        tokens = completion.usage.total_tokens
+
+        print(f"LLM system message:\n {system_message}")
+        print(f"LLM response:\n {output_string}")
+
+        return output_string, tokens
+    
     def call_llm(self, prompt, is_json_mode: bool = False):
         client = self.create_openai_client()
 
-        json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
         if is_json_mode:
             if self.index_model in json_mode_supported_models:
                 completion = client.chat.completions.create(

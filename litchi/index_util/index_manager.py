@@ -8,7 +8,7 @@ from typing import List
 
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
-from .prompt_util import PromptUtil
+from ..prompt_util.prompt_util import PromptUtil
 from .llm_util import LlmUtil
 
 from ..source_util.source_file_manager import SourceFileManager
@@ -258,12 +258,12 @@ class SourceFileIndexManager:
         return [file_reason["file"] for file_reason in file_reason_list]
 
 
-    def get_related_file_reason_list(self, user_query, max_file_count=10):
+    def get_related_file_reason_list(self, query, max_file_count=10):
         source_file_indexes = self.db_util.select_all_rows()
         
-        prompt = self.prompt_util.get_related_source_files_prompt(user_query, source_file_indexes, max_file_count)
-        
-        llm_output_json, tokens = self.llm_util.call_llm(prompt, True)
+        system_message = self.prompt_util.get_related_source_files_prompt(source_file_indexes, max_file_count)
+
+        llm_output_json, tokens = self.llm_util.call_llm_with_system_prompt(self.config_manager.litchi_config.Index.Model, system_message, query, True)
 
         json_string = remove_first_last_lines_if_quoted(llm_output_json)
 
