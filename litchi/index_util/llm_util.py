@@ -49,7 +49,7 @@ class LlmUtil:
             response_format = None
 
         output_object = GencodeOutput(output_file="", code="")
-        system_message = self.prompt_util.geneate_gencode_system_message(output_object, reference_file, language)
+        system_message = self.prompt_util.get_gencode_prompt(output_object, reference_file, language)
 
         completion = client.chat.completions.create(
             model=self.query_model,
@@ -85,7 +85,7 @@ class LlmUtil:
         with open(file, 'r') as file:
             reference_code = file.read()
 
-        system_message = self.prompt_util.geneate_optcode_system_message(reference_code)
+        system_message = self.prompt_util.get_optcode_prompt(reference_code)
 
         completion = client.chat.completions.create(
             model=self.query_model,
@@ -129,6 +129,25 @@ class LlmUtil:
 
         return output_string, tokens
     
+
+    def stream_call_llm_with_system_prompt(self, model, system_message, prompt):
+        client = self.create_openai_client()
+
+        stream = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            stream=True,
+            timeout=self.timeout
+        )
+
+        for chunk in stream:
+            # Print result in stdout
+            print(chunk.choices[0].delta.content or "", end="")
+
+
     def call_llm(self, prompt, is_json_mode: bool = False):
         client = self.create_openai_client()
 

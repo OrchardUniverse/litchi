@@ -11,72 +11,43 @@ class PromptUtil:
         self.index_language = self.config_manager.litchi_config.Index.Language
         self.query_language = self.config_manager.litchi_config.Query.Language
         
-    def append_output_language_prompt(self, prompt, language):
+    def add_output_language_to_prompt(self, language, prompt):
         return f"{prompt}\n\nMake sure all the output contents are in {language}."
 
-    def analyse_source_file_prompt(self, programming_language, code):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "analyse_source_file.prompt")
+    def render_local_template(self, local_file, params):
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        template_file = os.path.join(current_dir, local_file)
 
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-
-        template = Template(template_content)
+        with open(template_file, 'r') as file:
+            template = Template(file.read())
+            return template.render(params)
+    
+    def get_analyse_code_prompt(self, programming_language, code):
         params = {
             'programming_language': programming_language,
             'code': code
         }
-        prompt = template.render(params)
-        return self.append_output_language_prompt(prompt, self.index_language)
+        prompt = self.render_local_template("analyse_source_file.prompt", params)
+        return self.add_output_language_to_prompt(self.index_language, prompt)
 
     def get_related_source_files_prompt(self, source_file_indexes, max_file_count):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "get_related_source_files.prompt")
-
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-
-        template = Template(template_content)
         params = {
             'source_file_indexes': source_file_indexes,
             'max_file_count': max_file_count
         }
-        prompt = template.render(params)
-        return self.append_output_language_prompt(prompt, self.index_language)
+        prompt = self.render_local_template("get_related_source_files.prompt", params)
+        return self.add_output_language_to_prompt(self.index_language, prompt)
 
-    def chat_with_realted_source_files_prompt(self, query, file_content_list):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "chat_with_realted_source_files.prompt")
-
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-
-        template = Template(template_content)
+    def get_chat_source_files_prompt(self, query, file_content_list):
         params = {
             'query': query,
             'file_content_list': file_content_list
         }
-        prompt = template.render(params)
-        return self.append_output_language_prompt(prompt, self.query_language)
+        prompt = self.render_local_template("chat_with_realted_source_files.prompt", params)
+        return self.add_output_language_to_prompt(self.query_language, prompt)
 
-    def chat_with_model(self, query):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "chat_with_model.prompt")
 
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-
-        template = Template(template_content)
-        params = {
-            'query': query
-        }
-        prompt = template.render(params)
-        return self.append_output_language_prompt(prompt, self.query_language)
-    
-    def geneate_gencode_system_message(self, output_object: BaseModel, reference_filename="", language=""):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "gencode.prompt")
-
+    def get_gencode_prompt(self, output_object: BaseModel, reference_filename="", language=""):
         os_info = self.config_manager.litchi_config.OS
         if reference_filename == "":
             reference_code = ""
@@ -97,21 +68,12 @@ class PromptUtil:
             'programming_language': programming_language,
             'output_json': output_object.model_json_schema()
         }
-    
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-            template = Template(template_content)
-            return template.render(params)
+        prompt = self.render_local_template("gencode.prompt", params)
+        return self.add_output_language_to_prompt(self.query_language, prompt)
             
-    def geneate_optcode_system_message(self, reference_code=""):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_file = os.path.join(script_dir, "optcode.prompt")
-
+    def get_optcode_prompt(self, reference_code=""):
         params = {
             'reference_code': reference_code
         }
-    
-        with open(prompt_file, 'r') as file:
-            template_content = file.read()
-            template = Template(template_content)
-            return template.render(params)
+        prompt = self.render_local_template("optcode.prompt", params)
+        return self.add_output_language_to_prompt(self.query_language, prompt)

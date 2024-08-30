@@ -115,7 +115,7 @@ class SourceFileIndexManager:
 
     def llm_explain_code(self, programming_language, file_path):
         code = read_file(file_path)
-        prompt = self.prompt_util.analyse_source_file_prompt(programming_language, code)
+        prompt = self.prompt_util.get_analyse_code_prompt(programming_language, code)
         
         llm_output_json, tokens = self.llm_util.call_llm(prompt, True)
 
@@ -283,11 +283,11 @@ class SourceFileIndexManager:
 
         return self.chat_with_file_list(user_query, files)
 
-    def chat_with_file_list(self, user_query, index_file_list: List[str]):
+    def chat_with_file_list(self, query, index_file_list: List[str]):
+        # Read source code from files
         file_content_list = [{"file": file, "content": read_file_content(os.path.join(self.project_dir, file))} for file in index_file_list]
-
-        prompt = self.prompt_util.chat_with_realted_source_files_prompt(user_query, file_content_list)
-        self.llm_util.stream_call_llm(prompt)
+        system_message = self.prompt_util.get_chat_source_files_prompt(query, file_content_list)
+        self.llm_util.stream_call_llm_with_system_prompt(self.config_manager.litchi_config.Query.Model, system_message, query)
 
 
     def chat_with_searched_related_files(self, user_query):
@@ -299,7 +299,7 @@ class SourceFileIndexManager:
         return self.chat_with_file_list(user_query, files)
     
     def stream_chat(self, prompt):
-        prompt = self.prompt_util.append_output_language_prompt(prompt, self.config_manager.litchi_config.Query.Language)
+        prompt = self.prompt_util.add_output_language_to_prompt(prompt, self.config_manager.litchi_config.Query.Language)
         self.llm_util.stream_call_llm(prompt)
         
     

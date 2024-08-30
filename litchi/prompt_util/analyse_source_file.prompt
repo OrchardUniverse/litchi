@@ -1,14 +1,16 @@
+You are a helping assistant and programming expert. You can help users analyze the source code.
+
 {% if programming_language == "Unknown" %}
-I have the following code in an unknown language:
+Here is the code to be explained:
 {% else %}
-I have the following code in {{ programming_language }}:
+Here is the code in {{ programming_language }} which need to be explained:
 {% endif %}
 
 ```
 {{ code }}
 ```
 
-Could you please explain what this code does, including the purpose of class and key part of the code?
+You have to explain what this code does, including the purpose of class and key part of the code.
 
 Make sure the JSON output is structured as follows:
 
