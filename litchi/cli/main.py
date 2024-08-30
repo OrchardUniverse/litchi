@@ -124,12 +124,12 @@ def opt(file, query_or_file, inplace, dry_run):
 
 @click.command("chat")
 @click.argument("query")
-@click.option("--without-index", is_flag=True, help="Generate code without updating index.")
-@click.option("--files", required=False, help="Use the files in index file to chat.")
 @click.option("--file", required=False, help="Use the file to chat with.")
-def chat(query, without_index, files, file):
+@click.option("--files", required=False, help="Use the files in index file to chat.")
+@click.option("--with-index", is_flag=True, help="Generate code with generated indexes.")
+def chat(query, file, files, with_index):
     """Ask questions or chat to the source codes with indexes."""
-    chat_command.chat(query, without_index, files, file)
+    chat_command.chat(query, file, files, with_index)
 
 
 @click.command("watch")

@@ -72,7 +72,7 @@ def create_default_litchi_config(language: str = "English") -> LitchiConfig:
     }
     query_data = {
         "Language": language,
-        "Model": "gpt-4-1106-preview",
+        "Model": "gpt-4o",
         "ProgrammingLanguage": "Python"
     }
     return create_litchi_config(os_data, llm_data, index_data, query_data)
