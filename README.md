@@ -41,14 +41,18 @@ Unlike other programming assistants, `litchi` supports global indexing across al
 
 ## Install
 
-Install the `litchi` command as a standard Python package.
+Install the `litchi` command from [PyPI](https://pypi.org/project/orchard-litchi/).
+
+```
+pip install orchard-litchi
+```
+
+You can install from source by cloning the repository.
 
 ```
 git clone https://github.com/OrchardUniverse/litchi.git
-
 cd ./litchi/
-
-pip install .
+python ./setup.py develop
 ```
 
 ## Usage
@@ -56,9 +60,11 @@ pip install .
 Initialize the project and generate directory `.litchi/`. You can input the language as "Chinese" so that it will create index and query in Chinese.
 
 ```
-litchi init $PROJECT_PATH
+cd $PROJECT_PATH
 
-litchi init --language Chinese $PROJECT_PATH
+litchi init .
+
+litchi init --language Chinese ,
 ```
 
 Go to the project directory and create source file `.litchi/source_files.yaml`. You can edit `.litchi/ignore_rules.yaml` to choose the expected source files.
