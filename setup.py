@@ -14,9 +14,13 @@ with open(os.path.join(here, 'README.md'), 'r') as readme_file:
 requirements = read_requirements(os.path.join(here, 'requirements.txt'))
 
 setup(
-    name="litchi",
+    name="orchard-litchi",
     version="0.1.0",
     packages=find_packages(exclude=["tests*"]),
+    include_package_data = True,
+    package_data = {
+        '': ['*.prompt'],
+    },
     install_requires=requirements,
     author="Orchard Universe",
     description="Litchi is yet another coding assistant powered by LLM.",
