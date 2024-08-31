@@ -1,15 +1,16 @@
 import time
 import os
+import logging
 
 from ..index_util.llm_util import LlmUtil
-
+from ..cli.gen_command import generate_source_file
 
 class FileWatcher:
     def __init__(self, file, project_path: str = "./") -> None:
         self.monitor_file = file
 
         if not os.path.exists(self.monitor_file):
-            print(f"Create the empty wath file since it doesn't exist: {self.monitor_file}")
+            logging.info(f"Create the empty wath file since it doesn't exist: {self.monitor_file}")
             self.create_initial_file()
 
         self.llm_util = LlmUtil(project_path)
@@ -38,12 +39,12 @@ class FileWatcher:
                             break
                     requirement_content = '\n'.join(lines)
 
-                    print(f"Triggered and extract the user requirement: {requirement_content}")
+                    logging.info(f"Triggered and extract the user requirement: {requirement_content}")
 
 
-                    # TODO: Call function to generate code
+                    # TODO: Reuse generate function to generate code
                     output_string = self.generate_code(requirement_content)
-
+                    # generate_source_file(requirement_content, file_path, False, "")
 
                     # Move back to the beginning of the file and change the first line
                     file.seek(0)
@@ -59,7 +60,7 @@ class FileWatcher:
                     # Keep the rest of the file the same
                     file.write(file_contents)
         except IOError as e:
-            print(f'Error reading file: {e}')
+            logging.error(f'Error reading file: {e}')
 
 
     def start_watching(self):
@@ -79,17 +80,23 @@ class FileWatcher:
             except KeyboardInterrupt:
                 break
             except FileNotFoundError:
-                print(f'File {self.monitor_file} not found. Please check the path.')
+                logging.error(f'File {self.monitor_file} not found. Please check the path.')
                 break
 
     def generate_code(self, requirement_content) -> str:
         gencode_output = self.llm_util.call_llm_to_gencode(requirement_content, "", "")
 
+        if gencode_output.output_file == "":
+            logging.error("Error: output file path is empty.")
+            return ""
+        else:
+            logging.info(f"Generate file path: {gencode_output.output_file}")
+
         try:
             with open(gencode_output.output_file, 'w') as file:
                 file.write(gencode_output.code)
                 output_message = f"Generate code and write to `{gencode_output.output_file}`:\n\n```\n{gencode_output.code}\n```"
-                print(output_message)
+                logging.info(output_message)
                 return output_message
         except Exception as e:
-            print(f"An error occurred while writing to the file: {e}")
+            logging.error(f"An error occurred while writing to the file: {e}")

@@ -1,8 +1,8 @@
+import logging
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
 from ..index_util.index_manager import SourceFileIndexManager
-
 
 def chat(query:str, file:str = "", files:str = "", with_index:bool = False):
     LitchiConfigManager.make_sure_in_project_path()

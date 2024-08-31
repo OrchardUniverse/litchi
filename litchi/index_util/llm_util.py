@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from pydantic import BaseModel, Field
+import logging
 
 from ..config_util.litchi_config import LitchiConfigManager
 from ..prompt_util import prompt_util
@@ -39,7 +40,6 @@ class LlmUtil:
         return client
     
 
-
     def call_llm_to_gencode(self, prompt, reference_file="", language=""):
         client = self.create_openai_client()
 
@@ -61,20 +61,14 @@ class LlmUtil:
             timeout=self.timeout
         )
 
-
         llm_output_string = completion.choices[0].message.content
-
-
-        # TODO: add debug log
-        #print(f"LLM system message:\n {system_message}")
-        #print(f"LLM response:\n {llm_output_string}")
 
         try:
             output_object = GencodeOutput.model_validate_json(remove_first_last_lines_if_quoted(llm_output_string))
         except:
-            print("Error: failed to parse the response to GencodeOutput.")
-            print(f"LLM system message:\n {system_message}")
-            print(f"LLM response:\n {llm_output_string}")
+            logging.error("Error: failed to parse the response to GencodeOutput.")
+            logging.error(f"LLM system message:\n {system_message}")
+            logging.error(f"LLM response:\n {llm_output_string}")
 
         return output_object
 
@@ -98,8 +92,6 @@ class LlmUtil:
 
         llm_output_string = completion.choices[0].message.content
 
-        #print(f"LLM system message:\n {system_message}")
-        #print(f"LLM response:\n {llm_output_string}")
         return remove_first_last_lines_if_quoted(llm_output_string)
 
 
@@ -123,9 +115,6 @@ class LlmUtil:
 
         output_string = completion.choices[0].message.content
         tokens = completion.usage.total_tokens
-
-        print(f"LLM system message:\n {system_message}")
-        print(f"LLM response:\n {output_string}")
 
         return output_string, tokens
     
@@ -162,7 +151,7 @@ class LlmUtil:
                     timeout=self.timeout
                 )
             else:
-                print(f"Warning, you should use json mode supported models in {json_mode_supported_models}")
+                logging.warning(f"You should use json mode supported models in {json_mode_supported_models}")
                 completion = client.chat.completions.create(
                 model=self.index_model,
                 messages=[
@@ -181,11 +170,6 @@ class LlmUtil:
 
         output_string = completion.choices[0].message.content
         tokens = completion.usage.total_tokens
-
-        # TODO: add debug log
-        # print(f"LLM request:\n {user_prompt}")
-        # print(f"LLM response:\n {completion}")
-
         return output_string, tokens
 
 

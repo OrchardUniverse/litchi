@@ -2,6 +2,7 @@
 import yaml
 import os
 import shutil
+import logging
 
 from .file_util import FileUtil
 
@@ -81,7 +82,7 @@ class SourceFileManager:
         if not os.path.exists(ignore_rules_yaml_path):
             script_dir = os.path.dirname(os.path.abspath(__file__))
             default_ignore_rules_yaml_path = os.path.join(script_dir, ignore_rules_yaml_file)
-            print(f"File ignore_rules.yaml does not exist, copy from {default_ignore_rules_yaml_path} to {ignore_rules_yaml_path}")
+            logging.info(f"File ignore_rules.yaml does not exist, copy from {default_ignore_rules_yaml_path} to {ignore_rules_yaml_path}")
             shutil.copy(default_ignore_rules_yaml_path, ignore_rules_yaml_path)
 
         language_extensions_yaml_file = 'language_extensions.yaml'
@@ -90,7 +91,7 @@ class SourceFileManager:
         if not os.path.exists(language_extensions_yaml_path):
             script_dir = os.path.dirname(os.path.abspath(__file__))
             default_language_extensions_yaml_path = os.path.join(script_dir, language_extensions_yaml_file)
-            print(f"File language_extensions.yaml does not exist, copy from {default_language_extensions_yaml_path} to {language_extensions_yaml_path}")
+            logging.info(f"File language_extensions.yaml does not exist, copy from {default_language_extensions_yaml_path} to {language_extensions_yaml_path}")
             shutil.copy(default_language_extensions_yaml_path, language_extensions_yaml_path)
 
     def generate_language_file_map(self, files):
@@ -103,7 +104,7 @@ class SourceFileManager:
 
     def create_source_file_yaml(self):
         if os.path.exists(self.source_file_path):
-            print(f"Source file yaml already exists in {self.source_file_path}, do not create again")
+            logging.warning(f"Source file yaml already exists in {self.source_file_path}, do not create again")
         else:
             self.update_source_file_yaml()
 
@@ -113,7 +114,7 @@ class SourceFileManager:
 
         language_file_map = self.generate_language_file_map(file_list)
 
-        print(f"Save the source file yaml in {self.source_file_path}")
+        logging.info(f"Save the source file yaml in {self.source_file_path}")
         save_to_yaml(language_file_map, self.source_file_path)
 
 

@@ -1,5 +1,6 @@
 from prettytable import PrettyTable
 import os
+import logging
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
@@ -9,7 +10,7 @@ def create_index(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
 
     if (file_path == None and is_all == False) or (file_path != None and is_all == True):
-        print("Please specify a file path or use --all to create index for all files.")
+        logging.warming("Please specify a file path or use --all to create index for all files.")
         return
     
     source_file_manager = SourceFileManager()
@@ -20,7 +21,7 @@ def create_index(file_path, is_all):
         index = index_manager.create_index_and_save(file_path, language)
         if index != None:
             index.print()
-            print(f"Create index by consuming token: {index.tokens}")
+            logging.info(f"Create index by consuming token: {index.tokens}")
     else:
         file_count = source_file_manager.get_source_file_count()
         prompt = f"Are you sure to create index for {file_count} files? (yes/no): "
@@ -31,9 +32,9 @@ def create_index(file_path, is_all):
                 for file_name in files:
                     index_manager.create_index_and_save(file_name, language)
 
-            print(f"Create all indexes by consuming token: {index_manager.count_indexes_tokens()}")
+            logging.info(f"Create all indexes by consuming token: {index_manager.count_indexes_tokens()}")
         else:
-            print("Cancel creating index.")
+            logging.warning("Cancel creating index.")
 
 
 
@@ -41,7 +42,7 @@ def show_index(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
 
     if (file_path == None and is_all == False) or (file_path != None and is_all == True):
-        print("Please specify a file path or use --all to create index for all files.")
+        logging.info.warming("Please specify a file path or use --all to create index for all files.")
         return
     
     index_manager = SourceFileIndexManager()
@@ -70,7 +71,7 @@ def show_index_diff(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
 
     if (file_path == None and is_all == False) or (file_path != None and is_all == True):
-        print("Please specify a file path or use --all to create index for all files.")
+        logging.warning("Please specify a file path or use --all to create index for all files.")
         return
     
     index_manager = SourceFileIndexManager()
@@ -88,7 +89,7 @@ def update_index(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
 
     if (file_path == None and is_all == False) or (file_path != None and is_all == True):
-        print("Please specify a file path or use --all to create index for all files.")
+        logging.warning("Please specify a file path or use --all to create index for all files.")
         return
     
     index_manager = SourceFileIndexManager()
@@ -104,7 +105,7 @@ def delete_index(file_path, is_all):
     LitchiConfigManager.make_sure_in_project_path()
 
     if (file_path == None and is_all == False) or (file_path != None and is_all == True):
-        print("Please specify a file path or use --all to create index for all files.")
+        logging.warning("Please specify a file path or use --all to create index for all files.")
         return
     
     index_manager = SourceFileIndexManager()
@@ -123,7 +124,7 @@ def query_indexes(user_query, output_file: str =""):
     if output_file and output_file != "":
         output_directory = os.path.dirname(output_file)
         if not os.path.exists(output_directory):
-            print(f"Error: The directory {output_directory} does not exist.")
+            logging.error(f"The directory {output_directory} does not exist.")
             return
 
     config_manager = LitchiConfigManager()
@@ -137,7 +138,6 @@ def query_indexes(user_query, output_file: str =""):
     table = PrettyTable()
     table.field_names = ["File", "Reason"]
     for file_reason_map in file_reason_list:
-        #print(f"File: {file_reason_map['file']}\nReason: {file_reason_map['reason']}")
         table.add_row([file_reason_map['file'], file_reason_map['reason']])
 
     print(table)
@@ -146,7 +146,7 @@ def query_indexes(user_query, output_file: str =""):
         with open(output_file, 'w') as file:
             for file_reason_map in file_reason_list:
                 file.write(file_reason_map["file"] + '\n')
-        print(f"Successfully saved {len(file_reason_list)} file names into {output_file}")
+        logging.info(f"Successfully saved {len(file_reason_list)} file names into {output_file}")
 
 
 def copy_indexes_to_source_code():

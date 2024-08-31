@@ -2,7 +2,7 @@
 import os
 import json
 import sqlite3
-
+import logging
 import hashlib
 from typing import List
 
@@ -18,34 +18,6 @@ def read_file(file_path):
     with open(file_path, 'r') as file:
         code = file.read()
     return code
-
-
-def save_json_to_file(json_str, file_path):
-    """
-    Load a JSON string and save it to a local file.
-    
-    Args:
-        json_str (str): The JSON string to be loaded.
-        file_path (str): The path to the file where the JSON data should be saved.
-    
-    Returns:
-        None
-    """
-    try:
-        # Load the JSON string into a Python dictionary
-        data = json.loads(json_str)
-        
-        # Write the dictionary to a JSON file
-        with open(file_path, 'w') as json_file:
-            json.dump(data, json_file, indent=4, ensure_ascii=False)
-            
-        
-        print(f"JSON data has been successfully saved to {file_path}")
-    
-    except json.JSONDecodeError as e:
-        print(f"Failed to decode JSON: {e}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
 
 def remove_first_last_lines_if_quoted(text):
     lines = text.splitlines()
@@ -124,14 +96,13 @@ class SourceFileIndexManager:
         try:
             output_json = json.loads(json_string)
         except Exception as e:
-            print("Error: Fail to parse llm output as json, set output_json as empty")
+            logging.error(f"Fail to parse llm output as json, set output_json as empty, exception: {e}")
             output_json = {
                 "name": file_path,
                 "purpose": "Unknown",
                 "classes": [],
                 "functions": []
             }
-            print(e)
         return output_json, tokens
 
     def generate_source_file_index(self, file, llm_output_json, tokens) -> SourceCodeIndex:
@@ -158,13 +129,13 @@ class SourceFileIndexManager:
     
     def create_index(self, file_path, programming_language="Unknown"):
         if self.is_index_existed(file_path):
-            print("The index exists, skip creating.")
+            logging.warning("The index exists, skip creating.")
             return None
         else:
             return self.create_new_index(file_path, programming_language)
         
     def create_new_index(self, file_path, programming_language="Unknown"):
-        print(f"Try to create the index for {file_path}")
+        logging.info(f"Try to create the index for {file_path}")
         absolute_file_path = os.path.join(self.project_dir, file_path)
         llm_output_json, tokens = self.llm_explain_code(programming_language, absolute_file_path)
         return self.generate_source_file_index(file_path, llm_output_json, tokens)
@@ -187,7 +158,7 @@ class SourceFileIndexManager:
         index = self.get_index(file_path)
 
         if index is None:
-            print("Index does not exist.")
+            logging.warning("Index does not exist.")
         else:
             index.print()
     
@@ -198,16 +169,16 @@ class SourceFileIndexManager:
         index = self.db_util.select_row(file_path)
 
         if index is None:
-            print("Index does not exist.")
+            logging.warning("Index does not exist.")
             return
         else:
             absolute_file_path = os.path.join(self.project_dir, file_path)
             md5_hash, line_count = compute_md5_and_count_lines(absolute_file_path)
             if index.md5 != md5_hash:
-                print(f"The file has been changed and need to update index: {file_path}")
-                print(f"There are lines of code changes(index vs current): {index.lines} vs {line_count}")
+                logging.warning(f"The file has been changed and need to update index: {file_path}")
+                logging.warning(f"There are lines of code changes(index vs current): {index.lines} vs {line_count}")
             else:
-                print(f"The file has not been changed and no index diff: {file_path}")
+                logging.info(f"The file has not been changed and no index diff: {file_path}")
 
     def get_index_diff_files(self):
         index_diff_files = []
@@ -231,7 +202,7 @@ class SourceFileIndexManager:
 
     def update_index(self, file_path):
         if not self.is_index_existed(file_path):
-            print(f"Index for {file_path} does not exist.")
+            logging.warning(f"Index for {file_path} does not exist and skip updating.")
             return
 
         if self.is_index_diff(file_path):
@@ -243,14 +214,12 @@ class SourceFileIndexManager:
 
 
     def delete_index(self, file_path):
-        print(f"Try to delete the index of {file_path}")
+        logging.info(f"Try to delete the index of {file_path}")
 
         if not self.is_index_existed(file_path):
-            print(f"Index for {file_path} does not exist.")
+            logging.error(f"Index for {file_path} does not exist and skip deleting.")
             return
         self.db_util.delete_row(file_path)
-
-    
 
 
     def get_related_files(self, user_query, max_file_count=10):
@@ -271,7 +240,7 @@ class SourceFileIndexManager:
         try:
             return json.loads(json_string)["related_files"]
         except:
-            print(f"Fail to parse the json: {json_string}")
+            logging.error(f"Fail to parse the json: {json_string}")
             exit(-1)
 
 
@@ -294,7 +263,7 @@ class SourceFileIndexManager:
         max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
 
         files = self.get_related_files(user_query, max_file_count)
-        print(f"Get the related index file: {files}")
+        logging.info(f"Get the related index file: {files}")
 
         return self.chat_with_file_list(user_query, files)
     
@@ -317,9 +286,9 @@ class SourceFileIndexManager:
         try:        
             with open(index_file_path, 'w') as file:
                 file.write(index.to_printable_json())
-                print(f"Content successfully written to {index_file_path}")
+                logging.info(f"Content successfully written to {index_file_path}")
         except IOError as e:
-            print(f"An error occurred while writing to the file: {e}")
+            logging.error(f"An error occurred while writing to the file: {e}")
 
     def delete_index_from_source_code(self, index: SourceCodeIndex) -> None:
         index_file_path = self.generate_source_file_index_name(index.file)
@@ -327,8 +296,8 @@ class SourceFileIndexManager:
         try:
             if os.path.isfile(index_file_path):
                 os.remove(index_file_path)
-                print(f"Index file '{index_file_path}' has been deleted successfully.")
+                logging.info(f"Index file '{index_file_path}' has been deleted successfully.")
             else:
-                print(f"No index file found at '{index_file_path}'.")
+                logging.warning(f"No index file found at '{index_file_path}'.")
         except Exception as e:
-            print(f"An error occurred while trying to delete the file: {e}")
+            logging.error(f"An error occurred while trying to delete the file: {e}")

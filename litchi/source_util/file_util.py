@@ -99,17 +99,4 @@ class FileUtil:
         
         files = list_files(self.project_path, ignore_rules, gitignore_patterns)
         return files
-    
-def main():
-    ignore_rules = load_ignore_rules('ignore_rules.yaml')
-    gitignore_patterns = load_gitignore_rules('.gitignore')
-    directory = "/Users/tobe/code/orchard_universe/basket/"
-    files = list_files(directory, ignore_rules, gitignore_patterns)
-    
-    for file in files:
-        print(file)
-
-if __name__ == "__main__":
-    main()
-
 

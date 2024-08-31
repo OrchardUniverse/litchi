@@ -4,6 +4,7 @@ import yaml
 import platform
 import os
 import json
+import logging
 
 class OS(BaseModel):
     Type: str
@@ -84,9 +85,9 @@ def save_config_to_yaml(litchi_config: LitchiConfig, file_path: str):
     try:
         with open(file_path, 'w') as yaml_file:
             yaml.dump(config_dict, yaml_file, default_flow_style=False)
-        print(f"Save litchi config to {file_path}")
+        logging.info(f"Save litchi config to {file_path}")
     except Exception as e:
-        print(f"Error saving config to YAML file: {e}")
+        logging.error(f"Fail to save config to YAML file: {e}")
 
 
 
@@ -109,7 +110,7 @@ class LitchiConfigManager:
     
     def create_config_yaml(self, language: str = "English"):
         if self.is_initialized():
-            print("Litchi config already exists. Skip creating.")
+            logging.warning("Litchi config already exists. Skip creating.")
         else:        
             self.litchi_config = create_default_litchi_config(language)
             save_config_to_yaml(self.litchi_config, self.litchi_config_path)
@@ -127,7 +128,7 @@ class LitchiConfigManager:
         if LitchiConfigManager.is_in_project_path():
             pass
         else:
-            print("Current not in a litchi project path, please cd to project root path or using litchi init.")
+            logging.error("Current not in a litchi project path, please cd to project root path or using litchi init.")
             exit(-1)
 
 

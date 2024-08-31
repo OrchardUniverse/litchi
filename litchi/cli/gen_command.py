@@ -1,5 +1,6 @@
 from prettytable import PrettyTable
 import os
+import logging
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
@@ -15,12 +16,25 @@ def generate_source_file(query_or_file, file: str = "", should_run: bool = False
     llm_util = LlmUtil()
     gencode_output = llm_util.call_llm_to_gencode(query, file, language)
 
+    if gencode_output.output_file == "":
+        logging.error("Error: output file path is empty.")
+        return ""
+    else:
+        logging.info(f"Generate file path: {gencode_output.output_file}")
+
     try:
+        # Create directory if not exists
+        directory = os.path.dirname(gencode_output.output_file)
+        if directory != "" and not os.path.exists(directory):
+            os.makedirs(directory)
+            logging.info(f"Create directory {directory} before writing to the file")
+
         with open(gencode_output.output_file, 'w') as file:
             file.write(gencode_output.code)
-            print(f"Generate code and write to {gencode_output.output_file}")
+            logging.info(f"Generate code and write to {gencode_output.output_file}")
     except Exception as e:
-        print(f"An error occurred while writing to the file: {e}")
+        logging.error(f"An error occurred while writing to the file: {e}")
+        return
 
     if should_run:
         run_generated_file(gencode_output.output_file)
@@ -33,10 +47,10 @@ def run_generated_file(filename: str):
     elif filename.lower().endswith(".py"):
         command = f"python {filename}"
     else:
-        print("Error: only support for python and bash script")
+        logging.error("Only support for python and bash script")
         return
 
-    print(f"Try to run generated file with command: {command}")
+    logging.info(f"Try to run generated file with command: {command}")
     os.system(command)
 
 

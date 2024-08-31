@@ -7,6 +7,11 @@ from . import chat_command
 from . import gen_command
 from . import opt_command
 from . import watch_command
+import logging
+import coloredlogs
+
+coloredlogs.install(logging.INFO)
+
 
 @click.group()
 def cli():

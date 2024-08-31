@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
 import json
+import logging
 
 # Define the Pydantic model matching the schema
 class SourceCodeIndex(BaseModel):
@@ -27,9 +28,6 @@ class SourceCodeIndex(BaseModel):
 
     def print(self) -> None:
         print(self.to_printable_json())
-
-
-
 
 
 # Define the SqliteUtil class
@@ -62,7 +60,7 @@ class SqliteUtil:
             ''', (file, lines, md5, name, purpose, classes, functions, tokens))
             self.connection.commit()
         except sqlite3.IntegrityError as e:
-            print(f"Error inserting row: {e}")
+            logging.error(f"Error inserting row: {e}")
 
     def insert_index(self, index: SourceCodeIndex):
         self.insert_row(index.file, index.lines, index.md5, index.name, index.purpose, index.classes, index.functions, index.tokens)
@@ -148,40 +146,3 @@ class SqliteUtil:
         
     def close(self):
         self.connection.close()
-
-# Example Usage:
-# db_util = SqliteUtil('example.db')
-# db_util.insert_row('file1.txt', 100, 'md5hash1', 'File One', 'Purpose One', 'Class One')
-# exists = db_util.row_exists('file1.txt')
-# print("Row exists:", exists)
-# db_util.update_row('file1.txt', lines=200)
-# row = db_util.select_row('file1.txt')
-# print(row)
-# all_rows = db_util.select_all_rows()
-# for row in all_rows:
-#     print(row)
-# db_util.close()
-
-
-def main():
-    db_name = "source_code_index.db"
-    db_util = SqliteUtil(db_name)
-
-    file = "/Users/tobe/code/orchard_universe/basket/basket/cli.py"
-    print(db_util.row_exists(file))
-
-    row = db_util.select_row(file)
-    print(row)
-
-    print(db_util.select_all_rows())
-
-    # db_util.insert_row('file1.txt', 100, 'md5hash1', 'File One', 'Purpose One', 'Class One')
-    # exists = db_util.row_exists('file1.txt')
-    # print("Row exists:", exists)
-    # db_util.update_row('file1.txt', lines=200)
-    # row = db_util.select_row('file1.txt')
-    # print(row)
-    # db_util.close()
-
-if __name__ == "__main__":
-    main()

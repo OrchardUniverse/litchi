@@ -1,5 +1,6 @@
 from prettytable import PrettyTable
 import os
+import logging
 
 from ..source_util.source_file_manager import SourceFileManager
 from ..config_util.litchi_config import LitchiConfigManager
@@ -8,7 +9,7 @@ from ..index_util.index_manager import SourceFileIndexManager
 
 
 def generate_file(query):
-    print("Try to generate file in the current directory")
+    logging.info("Try to generate file in the current directory")
 
 
 def generate_ut():
