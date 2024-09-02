@@ -6,6 +6,7 @@ from . import index_command
 from . import chat_command
 from . import gen_command
 from . import opt_command
+from . import optfile_command
 from . import watch_command
 import logging
 import coloredlogs
@@ -112,11 +113,12 @@ def index_deletefromsource():
 @click.command("gen")
 @click.argument("query_or_file")
 @click.option("--file", required=False, default="", help="Generate the code which is based on the file.")
+@click.option("--files", required=False, help="Use the files in index file to chat.")
 @click.option("--run", is_flag=True, default=False, help="If run the generated code or not.")
 @click.option("--language", required=False, default="", help="The programming language to generate.")
-def gen(query_or_file, file, run, language):
+def gen(query_or_file, file, files, run, language):
     """Generate the source code based on user's query and indexes."""
-    gen_command.generate_source_file(query_or_file, file, run, language)
+    gen_command.generate_source_file(query_or_file, file, files, run, language)
 
 @click.command("opt")
 @click.argument("file")
@@ -126,6 +128,15 @@ def gen(query_or_file, file, run, language):
 def opt(file, query_or_file, inplace, dry_run):
     """Generate the source code based on user's query and indexes."""
     opt_command.optimize_code(file, query_or_file, inplace, dry_run)
+
+@click.command("optfile")
+@click.argument("file")
+@click.argument("query_or_file")
+@click.option("--inplace", is_flag=True, default=False, help="If replace the origin source file or not.")
+@click.option("--dry-run", is_flag=True, default=False, help="If only generate the code without writing.")
+def opt(file, query_or_file, inplace, dry_run):
+    """Generate the source code based on user's query and indexes."""
+    optfile_command.optimize_file(file, query_or_file, inplace, dry_run)
 
 @click.command("chat")
 @click.argument("query")

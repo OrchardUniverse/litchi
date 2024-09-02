@@ -8,9 +8,9 @@ from ..prompt_util import prompt_util
 
 json_mode_supported_models = ["gpt-4-1106-preview", "gpt-3.5-turbo-1106"]
 
-class GencodeOutput(BaseModel):
+class GenOutput(BaseModel):
     output_file: str = Field(description="The output file name.")
-    code: str = Field(description="The generated code.")
+    content: str = Field(description="The content of generated file.")
 
 def remove_first_last_lines_if_quoted(text):
     lines = text.splitlines()
@@ -40,7 +40,7 @@ class LlmUtil:
         return client
     
 
-    def call_llm_to_gencode(self, prompt, reference_file="", language=""):
+    def call_llm_to_gencode(self, prompt, reference_file="", reference_files="", language=""):
         client = self.create_openai_client()
 
         if self.query_model in json_mode_supported_models:
@@ -48,8 +48,9 @@ class LlmUtil:
         else:
             response_format = None
 
-        output_object = GencodeOutput(output_file="", code="")
-        system_message = self.prompt_util.get_gencode_prompt(output_object, reference_file, language)
+        output_object = GenOutput(output_file="", content="")
+
+        system_message = self.prompt_util.get_gencode_prompt(output_object, reference_file, reference_files, language)
 
         completion = client.chat.completions.create(
             model=self.query_model,
@@ -64,9 +65,9 @@ class LlmUtil:
         llm_output_string = completion.choices[0].message.content
 
         try:
-            output_object = GencodeOutput.model_validate_json(remove_first_last_lines_if_quoted(llm_output_string))
+            output_object = GenOutput.model_validate_json(remove_first_last_lines_if_quoted(llm_output_string))
         except:
-            logging.error("Error: failed to parse the response to GencodeOutput.")
+            logging.error("Error: failed to parse the response to GenOutput.")
             logging.error(f"LLM system message:\n {system_message}")
             logging.error(f"LLM response:\n {llm_output_string}")
 
@@ -94,6 +95,25 @@ class LlmUtil:
 
         return remove_first_last_lines_if_quoted(llm_output_string)
 
+    def llm_optimize_file(self, file, prompt):
+        client = self.create_openai_client()
+
+        with open(file, 'r') as file:
+            content = file.read()
+
+        system_message = self.prompt_util.get_optfile_prompt(content)
+
+        completion = client.chat.completions.create(
+            model=self.query_model,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            timeout=self.timeout
+        )
+
+        llm_output_string = completion.choices[0].message.content
+        return llm_output_string
 
     def call_llm_with_system_prompt(self, model, system_message, prompt, is_json_mode: bool = False):
         client = self.create_openai_client()

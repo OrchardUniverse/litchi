@@ -47,13 +47,22 @@ class PromptUtil:
         return self.add_output_language_to_prompt(self.query_language, prompt)
 
 
-    def get_gencode_prompt(self, output_object: BaseModel, reference_filename="", language=""):
+    def get_gencode_prompt(self, output_object: BaseModel, reference_filename="", reference_files="", language=""):
         os_info = self.config_manager.litchi_config.OS
-        if reference_filename == "":
-            reference_code = ""
-        else:
+        
+        reference_source_codes = []
+
+        if reference_filename != "":
             with open(reference_filename, 'r') as file:
-                reference_code = file.read()
+                reference_source_codes.append({"name": reference_filename, "code": file.read()})
+        elif reference_files != "":
+            with open(reference_files, 'r') as file:
+                lines = file.readlines()
+                filenames = [line.strip() for line in lines]
+                for filename in filenames:
+                    with open(filename, 'r') as file:
+                        reference_source_codes.append({"name": filename, "code": file.read()})
+        
         if language == "":
             programming_language = self.config_manager.litchi_config.Query.ProgrammingLanguage
         else:
@@ -62,18 +71,24 @@ class PromptUtil:
         params = {
             'operator_system_type': os_info.Type,
             'operator_system_version': os_info.Version,
-            'operator_system_arch': os_info.Arch, 
-            'reference_filename': reference_filename,
-            'reference_code': reference_code,
+            'operator_system_arch': os_info.Arch,
+            'reference_source_codes': reference_source_codes,
             'programming_language': programming_language,
             'output_json': output_object.model_json_schema()
         }
         prompt = self.render_local_template("gencode.prompt", params)
         return self.add_output_language_to_prompt(self.query_language, prompt)
             
-    def get_optcode_prompt(self, reference_code=""):
+    def get_optcode_prompt(self, reference_code):
         params = {
             'reference_code': reference_code
         }
         prompt = self.render_local_template("optcode.prompt", params)
-        return self.add_output_language_to_prompt(self.query_language, prompt)
+        return prompt
+
+    def get_optfile_prompt(self, content):
+        params = {
+            'content': content
+        }
+        prompt = self.render_local_template("optfile.prompt", params)
+        return prompt

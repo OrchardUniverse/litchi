@@ -8,36 +8,36 @@ from ..index_util.index_manager import SourceFileIndexManager
 from ..index_util.llm_util import LlmUtil
 from .common_util import CommandCommonUtil
 
-def generate_source_file(query_or_file, file: str = "", should_run: bool = False, language: str = ""):
+def generate_source_file(query_or_file, file: str = "", files: str = "", should_run: bool = False, language: str = ""):
     LitchiConfigManager.make_sure_in_project_path()
 
     query = CommandCommonUtil.extract_query(query_or_file)
 
     llm_util = LlmUtil()
-    gencode_output = llm_util.call_llm_to_gencode(query, file, language)
+    gen_output = llm_util.call_llm_to_gencode(query, file, files, language)
 
-    if gencode_output.output_file == "":
+    if gen_output.output_file == "":
         logging.error("Error: output file path is empty.")
         return ""
     else:
-        logging.info(f"Generate file path: {gencode_output.output_file}")
+        logging.info(f"Generate file path: {gen_output.output_file}")
 
     try:
         # Create directory if not exists
-        directory = os.path.dirname(gencode_output.output_file)
+        directory = os.path.dirname(gen_output.output_file)
         if directory != "" and not os.path.exists(directory):
             os.makedirs(directory)
             logging.info(f"Create directory {directory} before writing to the file")
 
-        with open(gencode_output.output_file, 'w') as file:
-            file.write(gencode_output.code)
-            logging.info(f"Generate code and write to {gencode_output.output_file}")
+        with open(gen_output.output_file, 'w') as file:
+            file.write(gen_output.content)
+            logging.info(f"Generate content and write to {gen_output.output_file}")
     except Exception as e:
         logging.error(f"An error occurred while writing to the file: {e}")
         return
 
     if should_run:
-        run_generated_file(gencode_output.output_file)
+        run_generated_file(gen_output.output_file)
 
 
 def run_generated_file(filename: str):
