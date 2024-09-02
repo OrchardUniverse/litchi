@@ -1,10 +1,10 @@
 
 import os
 import json
-import sqlite3
 import logging
 import hashlib
 from typing import List
+from prettytable import PrettyTable
 
 from .sqlite_util import SqliteUtil
 from .sqlite_util import SourceCodeIndex
@@ -262,10 +262,19 @@ class SourceFileIndexManager:
     def chat_with_searched_related_files(self, user_query):
         max_file_count = self.config_manager.litchi_config.Index.MaxRetrivalSize
 
-        files = self.get_related_files(user_query, max_file_count)
-        logging.info(f"Get the related index file: {files}")
+        file_reason_list = self.get_related_file_reason_list(user_query, max_file_count)
 
-        return self.chat_with_file_list(user_query, files)
+
+        # Print the result in a table
+        table = PrettyTable()
+        table.field_names = ["File", "Reason"]
+        for file_reason_map in file_reason_list:
+            table.add_row([file_reason_map['file'], file_reason_map['reason']])
+
+        print(table)
+
+
+        return self.chat_with_file_list(user_query, [item['file'] for item in file_reason_list])
     
     def stream_chat(self, prompt):
         prompt = self.prompt_util.add_output_language_to_prompt(prompt, self.config_manager.litchi_config.Query.Language)

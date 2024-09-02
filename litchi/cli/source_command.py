@@ -11,6 +11,12 @@ def create_source_file():
     source_file_manager.create_source_file_yaml()
     logging.info("Please check .litchi/source_file.yaml which contains all source files.")
 
+def show_source_file():
+    LitchiConfigManager.make_sure_in_project_path()
+
+    source_file_manager = SourceFileManager()
+    source_file_manager.print()
+
 def update_source_file():
     LitchiConfigManager.make_sure_in_project_path()
 

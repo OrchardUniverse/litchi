@@ -40,6 +40,11 @@ def source_create():
     """Create the local file source_files.yaml."""
     source_command.create_source_file()
 
+@source.command("show")
+def source_show():
+    """Show the content of source_files.yaml."""
+    source_command.show_source_file()    
+
 @source.command("update")
 def source_update():
     """Update the source_files.yaml with current source files."""
@@ -166,7 +171,9 @@ cli.add_command(watch)
 
 # Adding sub-commands to the respective command groups
 source.add_command(source_create)
+source.add_command(source_show)
 source.add_command(source_update)
+source.add_command(source_diff)
 
 index.add_command(index_create)
 index.add_command(index_show)

@@ -72,6 +72,14 @@ class SourceFileManager:
         self.source_file_path = os.path.join(self.litchi_path, 'source_files.yaml')
         self.setup_litchi_files()
 
+    def print(self):
+        if not os.path.exists(self.source_file_path):
+            logging.info("Source file does not exist, try to create the source file.")
+            self.create_source_file_yaml()
+
+        with open(self.source_file_path, 'r') as file:
+            print(file.read())
+
     def setup_litchi_files(self):
         if not os.path.exists(self.litchi_path):
             os.makedirs(self.litchi_path)
@@ -95,7 +103,6 @@ class SourceFileManager:
             shutil.copy(default_language_extensions_yaml_path, language_extensions_yaml_path)
 
     def generate_language_file_map(self, files):
-
         language_extensions_yaml_file = os.path.join(self.litchi_path, 'language_extensions.yaml')
 
         language_extensions = load_language_extensions(language_extensions_yaml_file)
