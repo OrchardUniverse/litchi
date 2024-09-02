@@ -1,0 +1,7 @@
+You are a helping assistant. You can help user to optimize the following content of file.
+
+```
+{{ content }}
+```
+
+Make sure to output the optimized content of file, no other information should be included in the output.
