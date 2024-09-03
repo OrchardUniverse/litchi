@@ -52,10 +52,10 @@ class PromptUtil:
         
         reference_source_codes = []
 
-        if reference_filename != "":
+        if reference_filename and reference_filename != "":
             with open(reference_filename, 'r') as file:
                 reference_source_codes.append({"name": reference_filename, "code": file.read()})
-        elif reference_files != "":
+        elif reference_files and reference_files != "":
             with open(reference_files, 'r') as file:
                 lines = file.readlines()
                 filenames = [line.strip() for line in lines]
