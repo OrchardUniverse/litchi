@@ -15,7 +15,7 @@ requirements = read_requirements(os.path.join(here, 'requirements.txt'))
 
 setup(
     name="orchard-litchi",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(exclude=["tests*"]),
     include_package_data = True,
     package_data = {
