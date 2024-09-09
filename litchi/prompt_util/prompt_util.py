@@ -60,8 +60,9 @@ class PromptUtil:
                 lines = file.readlines()
                 filenames = [line.strip() for line in lines]
                 for filename in filenames:
-                    with open(filename, 'r') as file:
-                        reference_source_codes.append({"name": filename, "code": file.read()})
+                    if filename != "":
+                        with open(filename, 'r') as file:
+                            reference_source_codes.append({"name": filename, "code": file.read()})
         
         if language == "":
             programming_language = self.config_manager.litchi_config.Query.ProgrammingLanguage

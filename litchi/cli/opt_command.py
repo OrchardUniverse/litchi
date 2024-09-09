@@ -15,7 +15,11 @@ def optimize_code(file, query_or_file, inplace, dry_run):
     optimized_code = llm_util.llm_optimize_code(file, query)
 
     if inplace:
-        with open(file, 'w') as f:
+        with open(file, 'r+') as f:
+            with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
+                temp_file.write(f.read())
+                logging.info(f"Backup original file into: {temp_file.name}")
+
             f.write(optimized_code)
         logging.info(f"Optimized code and saved into {file}")
     elif dry_run:
@@ -33,7 +37,11 @@ def optimize_code(file, query_or_file, inplace, dry_run):
         response = input("Do you want to overwrite with diff file? (yes/no): ")
         response = response.strip().lower()
         if response in ['yes', 'y']:
-            with open(file, 'w') as opened_file:
+            with open(file, 'r+') as opened_file:
+                with tempfile.NamedTemporaryFile(delete=False, mode='w') as temp_file:
+                    temp_file.write(opened_file.read())
+                    logging.info(f"Backup original file into: {temp_file.name}")
+            
                 opened_file.write(optimized_code)
             logging.info(f"The file '{file}' has been overwritten with the optimized code.")
         else:

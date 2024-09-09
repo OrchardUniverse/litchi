@@ -57,12 +57,12 @@ def get_os_info() -> dict:
 
     return os_info
 
-def create_default_litchi_config(language: str = "English") -> LitchiConfig:
+def create_default_litchi_config(base_url: str = "", api_key: str = "", language: str = "English") -> LitchiConfig:
     os_data = get_os_info()
 
     llm_data = {
-        "BaseUrl": "https://api.gptsapi.net/v1",
-        "ApiKey": "sk-xxx",
+        "BaseUrl": base_url,
+        "ApiKey": api_key,
         "Timeout": 10.0
     }
     index_data = {
@@ -108,16 +108,27 @@ class LitchiConfigManager:
     def is_initialized(self) -> bool:
         return os.path.exists(self.litchi_config_path)
     
-    def create_config_yaml(self, language: str = "English"):
+    def create_config_yaml(self, base_url, api_key, language):
         if self.is_initialized():
             logging.warning("Litchi config already exists. Skip creating.")
         else:        
-            self.litchi_config = create_default_litchi_config(language)
+            self.litchi_config = create_default_litchi_config(base_url, api_key, language)
+            save_config_to_yaml(self.litchi_config, self.litchi_config_path)
+
+    def create_config_yaml_without_apikey(self, language: str = "English"):
+        if self.is_initialized():
+            logging.warning("Litchi config already exists. Skip creating.")
+        else:        
+            self.litchi_config = create_default_litchi_config("", "", language)
             save_config_to_yaml(self.litchi_config, self.litchi_config_path)
 
 
     def print_config(self):
-        print(self.litchi_config.model_dump_json(indent=4))
+        # Hide API key and print
+        data = json.loads(self.litchi_config.model_dump_json(indent=4))
+        if "LLM" in data and "ApiKey" in data["LLM"]:
+            data["LLM"]["ApiKey"] = "********"
+            print(json.dumps(data, indent=4))
 
     @staticmethod
     def is_in_project_path() -> bool:
