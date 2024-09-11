@@ -8,6 +8,7 @@ directories:
   - dockerfiles
   - benchmark
   - logs
+  - vendor
 directory_prefix:
   - test
   - Test
@@ -27,6 +28,13 @@ files:
   - Dockerfile
   - NOTICE
   - Makefile
+  - AUTHORS
+  - CONTRIBUTORS
+  - COPYING
+  - license
+  - README
+  - go.mod
+  - go.sum
 file_prefix:
   - test
   - Test
@@ -51,6 +59,7 @@ file_posfix:
   - .yaml
   - .yml
   - .toml
+  - .xml
   - .gz
   - .zip
   - .tar.gz
@@ -104,3 +113,11 @@ file_posfix:
   - .sum
   - .ipynb
   - .prompt
+  - .s
+  - .bazel
+  - .markdown
+  - .lock
+  - .proto
+  - .tmpl
+  - .cfg
+  - .sql
